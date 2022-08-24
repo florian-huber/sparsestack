@@ -9,15 +9,11 @@ version = {}
 with open(os.path.join(here, "stacked-sparse-array", "__version__.py")) as f:
     exec(f.read(), version)
 
-with open("README.rst") as readme_file:
-    readme = readme_file.read()
-
 setup(
     name="matchms",
     version=version["__version__"],
     description="Python library for to build and handle stacks of sparse COO arrays efficiently",
-    long_description=readme,
-    long_description_content_type="text/x-rst",
+    long_description=open('README.md').read(),
     author="Florian Huber",
     author_email="florian.huber@hs-duesseldorf.de",
     url="https://github.com/florian-huber/stacked-sparse-array",
@@ -30,7 +26,7 @@ setup(
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: Apache Software License",
+        "License :: OSI Approved :: MIT",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
