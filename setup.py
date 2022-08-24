@@ -19,7 +19,7 @@ setup(
     long_description=readme,
     long_description_content_type="text/x-rst",
     author="Florian Huber",
-    author_email="florian.huber@esciencecenter.nl",
+    author_email="florian.huber@hs-duesseldorf.de",
     url="https://github.com/florian-huber/stacked-sparse-array",
     packages=find_packages(exclude=['*tests*']),
     package_data={"stacked-sparse-array": ["data/*.csv"]},
