@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from scipy.sparse import coo_matrix
-from matchms.StackedSparseScores import StackedSparseScores
+from stacked-sparse-array.StackedSparseArray import StackedSparseArray
 
 
 @pytest.fixture
@@ -13,14 +13,14 @@ def sparse_array():
 
 
 def test_sss_matrix_empty():
-    matrix = StackedSparseScores(200, 100)
+    matrix = StackedSparseArray(200, 100)
     assert matrix.shape == (200, 100, 0)
     assert matrix.score_names == []
 
 
 def test_sss_matrix_add_dense():
     arr = np.arange(0, 120).reshape(12, 10)
-    matrix = StackedSparseScores(12, 10)
+    matrix = StackedSparseArray(12, 10)
     assert matrix.shape == (12, 10, 0)
     matrix.add_dense_matrix(arr, "test_score")
     assert matrix.shape == (12, 10, 1)
@@ -29,7 +29,7 @@ def test_sss_matrix_add_dense():
 
 def test_sss_matrix_add_empty_array():
     arr = np.array([[False, False], [False, False]])
-    matrix = StackedSparseScores(2, 2)
+    matrix = StackedSparseArray(2, 2)
     assert matrix.shape == (2, 2, 0)
     matrix.add_dense_matrix(arr, "test_score")
     assert matrix.shape == (2, 2, 1)
@@ -39,26 +39,26 @@ def test_sss_matrix_add_empty_array():
 
 def test_sss_matrix_no_setter():
     arr = np.arange(0, 120).reshape(12, 10)
-    matrix = StackedSparseScores(12, 10)
+    matrix = StackedSparseArray(12, 10)
     matrix.add_dense_matrix(arr, "test_score")
     with pytest.raises(NotImplementedError):
         matrix[1, 2] = 5
 
 
 def test_sss_matrix_class_name(sparse_array):
-    matrix = StackedSparseScores(12, 10)
+    matrix = StackedSparseArray(12, 10)
     matrix.add_dense_matrix(sparse_array, "test_score")
     msg = "<12x10x1 stacked sparse array containing scores for ('test_score',)" \
         " with 30 stored elements in COOrdinate format>"
     assert matrix.__repr__() == msg
-    msg2 = "StackedSparseScores array of shape (12, 10, 1) containing scores for" \
+    msg2 = "StackedSparseArray array of shape (12, 10, 1) containing scores for" \
         " ('test_score',)."
     assert str(matrix) == msg2
 
 
 def test_sss_matrix_add_coo(sparse_array):
     sparse_array = coo_matrix(sparse_array)
-    matrix = StackedSparseScores(12, 10)
+    matrix = StackedSparseArray(12, 10)
     assert matrix.shape == (12, 10, 0)
     matrix.add_coo_matrix(sparse_array, "test_score")
     assert matrix.shape == (12, 10, 1)
@@ -78,7 +78,7 @@ def test_sss_matrix_add_coo_2_times(sparse_array):
     sparse_array = sparse_array/2
     sparse_array2 = coo_matrix(sparse_array.astype(np.int32))
 
-    matrix = StackedSparseScores(12, 10)
+    matrix = StackedSparseArray(12, 10)
     matrix.add_coo_matrix(sparse_array1, "scores1")
     matrix.add_coo_matrix(sparse_array2, "scores2")
     assert matrix.shape == (12, 10, 2)
@@ -107,7 +107,7 @@ def test_sss_matrix_add_coo_2_times(sparse_array):
 
 def test_sss_matrix_equality(sparse_array):
     def _create_array(name1, name2):
-        matrix = StackedSparseScores(12, 10)
+        matrix = StackedSparseArray(12, 10)
         matrix.add_coo_matrix(sparse_array1, name1)
         matrix.add_coo_matrix(sparse_array2, name2)
         return matrix
@@ -139,7 +139,7 @@ def test_sss_matrix_equality(sparse_array):
 def test_sss_matrix_add_sparse_data(sparse_array):
     sparse_array = sparse_array[:5, :6]
 
-    matrix = StackedSparseScores(5, 6)
+    matrix = StackedSparseArray(5, 6)
     assert matrix.shape == (5, 6, 0)
     matrix.add_dense_matrix(sparse_array, "scoreA")
     assert matrix.shape == (5, 6, 1)
@@ -158,7 +158,7 @@ def test_sss_matrix_add_sparse_data(sparse_array):
 
 def test_sss_matrix_slicing():
     arr = np.arange(0, 120).reshape(12, 10)
-    matrix = StackedSparseScores(12, 10)
+    matrix = StackedSparseArray(12, 10)
     matrix.add_dense_matrix(arr, "test_score")
 
     # Test slicing
@@ -192,7 +192,7 @@ def test_sss_matrix_slicing():
 def test_sss_matrix_slicing_mostly_empty_array():
     arr = np.zeros((4, 6))
     arr[3, 4] = 1.5
-    matrix = StackedSparseScores(4, 6)
+    matrix = StackedSparseArray(4, 6)
     matrix.add_dense_matrix(arr, "test_score")
 
     assert matrix[3, 3] == np.array([0])
@@ -214,7 +214,7 @@ def test_sss_matrix_slicing_mostly_empty_array():
 ])
 def test_sss_matrix_slicing_exceptions(sparse_array, slicing_option):
     msg = "Wrong slicing, or option not yet implemented"
-    matrix = StackedSparseScores(12, 10)
+    matrix = StackedSparseArray(12, 10)
     matrix.add_dense_matrix(sparse_array, "scores1")
     matrix.add_dense_matrix(sparse_array, "scores2")
 
@@ -226,7 +226,7 @@ def test_sss_matrix_slicing_exceptions(sparse_array, slicing_option):
 def test_sss_matrix_filter_by_range():
     """Apply tresholds to really make the data sparse."""
     arr = np.arange(0, 120).reshape(12, 10)
-    matrix = StackedSparseScores(12, 10)
+    matrix = StackedSparseArray(12, 10)
     matrix.add_dense_matrix(arr, "test_score")
     matrix = matrix.filter_by_range(low=70, high=85)
     assert np.all(matrix.data["test_score"] == np.arange(71, 85))
@@ -239,7 +239,7 @@ def test_sss_matrix_filter_by_range_stacked():
     scores2[scores2 < 80] = 0
     scores2[scores2 > 0] = 0.9
 
-    matrix = StackedSparseScores(12, 10)
+    matrix = StackedSparseArray(12, 10)
     matrix.add_dense_matrix(scores1.astype(np.int64), "scores1")
     matrix = matrix.filter_by_range(low=70, high=85)
     assert matrix.shape == (12, 10, 1)
@@ -270,14 +270,14 @@ def test_sss_matrix_filter_by_range_stacked():
     [-5, "out of range"],
 ])
 def test_asindices(input_index, msg):
-    array = StackedSparseScores(1, 1)
+    array = StackedSparseArray(1, 1)
     with pytest.raises(IndexError) as exception:
         _ = array[input_index]
     assert msg in exception.value.args[0]
 
 
 def test_missing_score_name():
-    matrix = StackedSparseScores(2, 4)
+    matrix = StackedSparseArray(2, 4)
     msg = "Array is empty."
     with pytest.raises(KeyError) as exception:
         _ = matrix.guess_score_name()
