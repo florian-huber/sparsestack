@@ -51,9 +51,9 @@ class StackedSparseArray:
     def __init__(self, n_row, n_col):
         self.__n_row = n_row
         self.__n_col = n_col
-        idx_dtype = get_index_dtype(maxval=max(n_row, n_col))
-        self.row = np.array([], dtype=idx_dtype)
-        self.col = np.array([], dtype=idx_dtype)
+        self.idx_dtype = get_index_dtype(maxval=max(n_row, n_col))
+        self.row = np.array([], dtype=self.idx_dtype)
+        self.col = np.array([], dtype=self.idx_dtype)
         self.data = None
 
     def __repr__(self):
@@ -314,6 +314,9 @@ class StackedSparseArray:
             Name of the score which is added. Will later be used to access and address
             the added scores, for instance via `sss_array.toarray("my_score_name")`.
         """
+        if isinstance(data, list):
+            data = np.array(data)
+
         if data is None:
             self.data = np.array([])
         elif len(data.dtype) > 1:  # if structured array
@@ -329,8 +332,8 @@ class StackedSparseArray:
 
     def _add_sparse_data(self, data, row, col, name):
         assert name not in self.score_names, "Scores of 'name' are already found in array"
-        self.row = row
-        self.col = col
+        self.row = np.array(row, dtype=self.idx_dtype)
+        self.col = np.array(col, dtype=self.idx_dtype)
         self.data = np.array(data, dtype=[(name, data.dtype)])
 
     def _add_sparse_data_to_existing(self, data, name):

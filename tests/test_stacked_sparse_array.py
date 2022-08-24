@@ -5,20 +5,27 @@ from sparsestack.StackedSparseArray import StackedSparseArray
 
 
 @pytest.fixture
-def sparse_array():
+def dense_array_sparse():
     arr = np.arange(0, 120).reshape(12, 10)
     arr[arr % 2 == 1] = 0
     arr[arr % 4 == 0] = 0
     return arr
 
 
-def test_sss_matrix_empty():
+@pytest.fixture
+def sparsestack_example(dense_array_sparse):
+    matrix = StackedSparseArray(5, 6)
+    matrix.add_dense_matrix(dense_array_sparse[:5, :6], "scoreA")
+    return matrix
+
+
+def test_sparsestack_empty():
     matrix = StackedSparseArray(200, 100)
     assert matrix.shape == (200, 100, 0)
     assert matrix.score_names == []
 
 
-def test_sss_matrix_add_dense():
+def test_sparsestack_add_dense_array():
     arr = np.arange(0, 120).reshape(12, 10)
     matrix = StackedSparseArray(12, 10)
     assert matrix.shape == (12, 10, 0)
@@ -27,8 +34,8 @@ def test_sss_matrix_add_dense():
     assert np.all(matrix.data["test_score"] == np.arange(1, 120))
 
 
-def test_sss_matrix_add_empty_array():
-    arr = np.array([[False, False], [False, False]])
+def test_sparsestack_add_empty_array():
+    arr = np.array([[False, False], [0, False]])
     matrix = StackedSparseArray(2, 2)
     assert matrix.shape == (2, 2, 0)
     matrix.add_dense_matrix(arr, "test_score")
@@ -37,7 +44,7 @@ def test_sss_matrix_add_empty_array():
     assert np.all(matrix.to_array().tolist() == arr)
 
 
-def test_sss_matrix_no_setter():
+def test_sparsestack_no_setter():
     arr = np.arange(0, 120).reshape(12, 10)
     matrix = StackedSparseArray(12, 10)
     matrix.add_dense_matrix(arr, "test_score")
@@ -45,9 +52,9 @@ def test_sss_matrix_no_setter():
         matrix[1, 2] = 5
 
 
-def test_sss_matrix_class_name(sparse_array):
+def test_sparsestack_class_name(dense_array_sparse):
     matrix = StackedSparseArray(12, 10)
-    matrix.add_dense_matrix(sparse_array, "test_score")
+    matrix.add_dense_matrix(dense_array_sparse, "test_score")
     msg = "<12x10x1 stacked sparse array containing scores for ('test_score',)" \
         " with 30 stored elements in COOrdinate format>"
     assert matrix.__repr__() == msg
@@ -56,8 +63,8 @@ def test_sss_matrix_class_name(sparse_array):
     assert str(matrix) == msg2
 
 
-def test_sss_matrix_add_coo(sparse_array):
-    sparse_array = coo_matrix(sparse_array)
+def test_sparsestack_add_coo(dense_array_sparse):
+    sparse_array = coo_matrix(dense_array_sparse)
     matrix = StackedSparseArray(12, 10)
     assert matrix.shape == (12, 10, 0)
     matrix.add_coo_matrix(sparse_array, "test_score")
@@ -72,11 +79,11 @@ def test_sss_matrix_add_coo(sparse_array):
     assert np.all(c[:6] == np.array([2, 6, 0, 4, 8, 2]))
 
 
-def test_sss_matrix_add_coo_2_times(sparse_array):
-    sparse_array1 = coo_matrix(sparse_array.astype(np.int32))
-    sparse_array[sparse_array % 10 == 0] = 0
-    sparse_array = sparse_array/2
-    sparse_array2 = coo_matrix(sparse_array.astype(np.int32))
+def test_sparsestack_add_coo_2_times(dense_array_sparse):
+    sparse_array1 = coo_matrix(dense_array_sparse.astype(np.int32))
+    dense_array_sparse[dense_array_sparse % 10 == 0] = 0
+    dense_array_sparse = dense_array_sparse/2
+    sparse_array2 = coo_matrix(dense_array_sparse.astype(np.int32))
 
     matrix = StackedSparseArray(12, 10)
     matrix.add_coo_matrix(sparse_array1, "scores1")
@@ -105,17 +112,17 @@ def test_sss_matrix_add_coo_2_times(sparse_array):
     assert msg in exception.value.args[0]
 
 
-def test_sss_matrix_equality(sparse_array):
+def test_sparsestack_equality(dense_array_sparse):
     def _create_array(name1, name2):
         matrix = StackedSparseArray(12, 10)
         matrix.add_coo_matrix(sparse_array1, name1)
         matrix.add_coo_matrix(sparse_array2, name2)
         return matrix
-        
-    sparse_array1 = coo_matrix(sparse_array.astype(np.int32))
-    sparse_array[sparse_array % 10 == 0] = 0
-    sparse_array = sparse_array/2
-    sparse_array2 = coo_matrix(sparse_array.astype(np.int32))
+
+    sparse_array1 = coo_matrix(dense_array_sparse.astype(np.int32))
+    dense_array_sparse[dense_array_sparse % 10 == 0] = 0
+    dense_array_sparse = dense_array_sparse/2
+    sparse_array2 = coo_matrix(dense_array_sparse.astype(np.int32))
 
     matrix = _create_array("scores1", "scores2")
     matrix_2 = _create_array("scores1", "scores2")
@@ -136,27 +143,41 @@ def test_sss_matrix_equality(sparse_array):
     assert matrix != matrix_2
 
 
-def test_sss_matrix_add_sparse_data(sparse_array):
-    sparse_array = sparse_array[:5, :6]
-
+@pytest.mark.parametrize("data_to_add", [
+    np.array([3, 2, 1.1]),
+    [3, 2, 1.1],
+])
+def test_sparsestack_add_sparse_data_to_empy(data_to_add):
     matrix = StackedSparseArray(5, 6)
     assert matrix.shape == (5, 6, 0)
-    matrix.add_dense_matrix(sparse_array, "scoreA")
+    row = [0, 2, 4]
+    col = [1, 0, 5]
+    matrix.add_sparse_data(data_to_add, "scoreA", row, col)
     assert matrix.shape == (5, 6, 1)
-    assert np.all(matrix.data["scoreA"] == np.array([2, 10, 14, 22, 30, 34, 42]))
+    assert np.all(matrix.data["scoreA"] == np.array([3, 2, 1.1]))
 
-    # Add sparse scores
+
+def test_sparsestack_add_sparse_data_to_existing(sparsestack_example):
     new_scores = np.array([0.2, 0.5, 0.2, 0.1, 0.8, 1, 1])
-    matrix.add_sparse_data(new_scores, "scoreB")
-    assert np.all(matrix.to_array("scoreB")[:, 2] == np.array([0.2, 0., 0.1, 0., 1.]))
-    assert matrix.to_array().shape == (5, 6)
-    assert matrix.to_array()["scoreA"].shape == (5, 6)
-    assert matrix.to_array()["scoreB"].shape == (5, 6)
-    assert np.all(matrix.to_array()["scoreB"][:, 2] == np.array([0.2, 0., 0.1, 0., 1.]))
-    assert np.all(matrix.to_array()["scoreA"][3, :] == np.array([30, 0, 0, 0, 34, 0]))
+    sparsestack_example.add_sparse_data(new_scores, "scoreB")
+    assert np.all(sparsestack_example.to_array("scoreB")[:, 2] == np.array([0.2, 0., 0.1, 0., 1.]))
+    assert sparsestack_example.to_array().shape == (5, 6)
+    assert sparsestack_example.to_array()["scoreA"].shape == (5, 6)
+    assert sparsestack_example.to_array()["scoreB"].shape == (5, 6)
+    assert np.all(sparsestack_example.to_array()["scoreB"][:, 2] == np.array([0.2, 0., 0.1, 0., 1.]))
+    assert np.all(sparsestack_example.to_array()["scoreA"][3, :] == np.array([30, 0, 0, 0, 34, 0]))
 
 
-def test_sss_matrix_slicing():
+def test_sparsestack_add_sparse_data_to_existing_fail(sparsestack_example):
+    scores_too_few = np.array([0.2, 0.5, 0.2, 0.1, 0.8])
+
+    with pytest.raises(AssertionError) as exception:
+        sparsestack_example.add_sparse_data(scores_too_few, "scoreB")
+    msg = "Data must be of same size as number of sparse values in the array"
+    assert msg in exception.value.args[0]
+
+
+def test_sparsestack_slicing():
     arr = np.arange(0, 120).reshape(12, 10)
     matrix = StackedSparseArray(12, 10)
     matrix.add_dense_matrix(arr, "test_score")
@@ -189,7 +210,7 @@ def test_sss_matrix_slicing():
     assert np.all(v4 == np.arange(1, 120))
 
 
-def test_sss_matrix_slicing_mostly_empty_array():
+def test_sparsestack_slicing_mostly_empty_array():
     arr = np.zeros((4, 6))
     arr[3, 4] = 1.5
     matrix = StackedSparseArray(4, 6)
@@ -212,18 +233,18 @@ def test_sss_matrix_slicing_mostly_empty_array():
     "matrix[1, 1, :1]",
     "matrix[None]",
 ])
-def test_sss_matrix_slicing_exceptions(sparse_array, slicing_option):
+def test_sparsestack_slicing_exceptions(dense_array_sparse, slicing_option):
     msg = "Wrong slicing, or option not yet implemented"
     matrix = StackedSparseArray(12, 10)
-    matrix.add_dense_matrix(sparse_array, "scores1")
-    matrix.add_dense_matrix(sparse_array, "scores2")
+    matrix.add_dense_matrix(dense_array_sparse, "scores1")
+    matrix.add_dense_matrix(dense_array_sparse, "scores2")
 
     with pytest.raises(IndexError) as exception:
         exec(slicing_option)
     assert msg in exception.value.args[0]
 
 
-def test_sss_matrix_filter_by_range():
+def test_sparsestack_filter_by_range():
     """Apply tresholds to really make the data sparse."""
     arr = np.arange(0, 120).reshape(12, 10)
     matrix = StackedSparseArray(12, 10)
@@ -232,7 +253,7 @@ def test_sss_matrix_filter_by_range():
     assert np.all(matrix.data["test_score"] == np.arange(71, 85))
 
 
-def test_sss_matrix_filter_by_range_stacked():
+def test_sparsestack_filter_by_range_stacked():
     """Apply 2 sequential addition and filtering steps."""
     scores1 = np.arange(0, 120).reshape(12, 10)
     scores2 = np.arange(0, 120).reshape(12, 10).astype(float)
