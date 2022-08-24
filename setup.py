@@ -10,7 +10,7 @@ with open(os.path.join(here, "stacked-sparse-array", "__version__.py")) as f:
     exec(f.read(), version)
 
 setup(
-    name="matchms",
+    name="stacked-sparse-array",
     version=version["__version__"],
     description="Python library for to build and handle stacks of sparse COO arrays efficiently",
     long_description=open('README.md').read(),
@@ -45,9 +45,6 @@ setup(
                             "prospector[with_pyroma]",
                             "pytest",
                             "pytest-cov",
-                            "sphinx>=4.0.0",
-                            "sphinx_rtd_theme",
-                            "sphinxcontrib-apidoc",
                             "testfixtures",
                             "yapf",]},
 )
