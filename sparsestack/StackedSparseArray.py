@@ -24,7 +24,7 @@ class StackedSparseArray:
 
     .. code-block:: python
         import numpy as np
-        from matchms import StackedSparseArray
+        from sparsestack import StackedSparseArray
 
         scores1 = np.random.random((12, 10))
         scores2 = np.random.random((12, 10))
