@@ -63,7 +63,7 @@ class StackedSparseArray:
         return msg
 
     def __str__(self):
-        msg = f"StackedSparseScores array of shape {self.shape}" \
+        msg = f"StackedSparseArray array of shape {self.shape}" \
             f" containing scores for {self.score_names}."
         return msg
 
@@ -200,8 +200,8 @@ class StackedSparseArray:
         return self.data.dtype.names
 
     def clone(self):
-        """ Returns clone (deepcopy) of StackedSparseScores instance."""
-        cloned_array = StackedSparseScores(self.__n_row, self.__n_col)
+        """ Returns clone (deepcopy) of StackedSparseArray instance."""
+        cloned_array = StackedSparseArray(self.__n_row, self.__n_col)
         cloned_array.row = self.row
         cloned_array.col = self.col
         cloned_array.data = self.data
@@ -211,9 +211,9 @@ class StackedSparseArray:
                          name: str):
         """Add dense array (numpy array) to stacked sparse scores.
 
-        If the StackedSparseScores is still empty, the full dense matrix will
+        If the StackedSparseArray is still empty, the full dense matrix will
         be added.
-        If the StackedSparseScores already contains one or more scores, than only
+        If the StackedSparseArray already contains one or more scores, than only
         those values of the input matrix will be added which have the same position
         as already existing entries!
 
@@ -261,9 +261,9 @@ class StackedSparseArray:
     def add_coo_matrix(self, coo_matrix, name):
         """Add sparse matrix (scipy COO-matrix) to stacked sparse scores.
 
-        If the StackedSparseScores is still empty, the full sparse matrix will
+        If the StackedSparseArray is still empty, the full sparse matrix will
         be added.
-        If the StackedSparseScores already contains one or more scores, than only
+        If the StackedSparseArray already contains one or more scores, than only
         those values of the input matrix will be added which have the same position
         as already existing entries!
 
@@ -369,7 +369,7 @@ class StackedSparseArray:
             name = self.guess_score_name()
         idx = np.where(above_operator(self.data[name], low)
                        & below_operator(self.data[name], high))
-        cloned_array = StackedSparseScores(self.__n_row, self.__n_col)
+        cloned_array = StackedSparseArray(self.__n_row, self.__n_col)
         cloned_array.col = self.col[idx]
         cloned_array.row = self.row[idx]
         cloned_array.data = self.data[idx]
