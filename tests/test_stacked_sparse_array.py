@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from scipy.sparse import coo_matrix
-from stacked-sparse-array.StackedSparseArray import StackedSparseArray
+from sparsestack.StackedSparseArray import StackedSparseArray
 
 
 @pytest.fixture

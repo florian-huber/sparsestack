@@ -6,11 +6,11 @@ from setuptools import find_packages, setup
 here = os.path.abspath(os.path.dirname(__file__))
 
 version = {}
-with open(os.path.join(here, "stacked-sparse-array", "__version__.py")) as f:
+with open(os.path.join(here, "sparsestack", "__version__.py")) as f:
     exec(f.read(), version)
 
 setup(
-    name="stacked-sparse-array",
+    name="sparsestack",
     version=version["__version__"],
     description="Python library for to build and handle stacks of sparse COO arrays efficiently",
     long_description=open('README.md').read(),
