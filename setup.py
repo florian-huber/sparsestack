@@ -2,6 +2,10 @@
 import os
 from setuptools import find_packages, setup
 
+# read the contents of your README file
+from pathlib import Path
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -13,7 +17,8 @@ setup(
     name="sparsestack",
     version=version["__version__"],
     description="Python library for to build and handle stacks of sparse COO arrays efficiently",
-    long_description=open('README.md').read(),
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     author="Florian Huber",
     author_email="florian.huber@hs-duesseldorf.de",
     url="https://github.com/florian-huber/stacked-sparse-array",
