@@ -231,7 +231,7 @@ class StackedSparseArray:
             self.data = np.array([])
         elif len(matrix.dtype) > 1:  # if structured array
             for dtype_name in matrix.dtype.names:
-                self._add_dense_matrix(matrix[dtype_name], name + "_" + dtype_name)
+                self._add_dense_matrix(matrix[dtype_name], f"{name}_{dtype_name}")
         else:
             self._add_dense_matrix(matrix, name)
 
