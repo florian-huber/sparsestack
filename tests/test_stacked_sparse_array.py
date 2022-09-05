@@ -34,6 +34,14 @@ def test_sparsestack_add_dense_array():
     assert np.all(matrix.data["test_score"] == np.arange(1, 120))
 
 
+def test_sparsestack_add_structured_dense_array():
+    arr = np.array([(1, 1.5), (2, 3)], dtype=[("x", int), ("y", float)])
+    matrix = StackedSparseArray(2, 1)
+    matrix.add_dense_matrix(arr, "test_score")
+    assert matrix.shape == (2, 1, 1)
+    #assert np.all(matrix.data["test_score"] == np.arange(1, 120))
+
+
 def test_sparsestack_add_empty_array():
     arr = np.array([[False, False], [0, False]])
     matrix = StackedSparseArray(2, 2)
