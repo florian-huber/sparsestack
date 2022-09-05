@@ -240,6 +240,11 @@ class StackedSparseArray:
             input_dtype = matrix.dtype[0]
         else:
             input_dtype = matrix.dtype
+
+        # Handle 1D arrays
+        if matrix.ndim == 1:
+            matrix = matrix.reshape(-1, 1)
+
         if self.shape[2] == 0 or (self.shape[2] == 1 and name in self.score_names):
             # Add first (sparse) array of scores
             (idx_row, idx_col) = np.where(matrix)
