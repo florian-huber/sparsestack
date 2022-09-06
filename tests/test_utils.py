@@ -23,6 +23,7 @@ def test_array_to_df(dense_array_sparse):
     df = array_to_df(dense_array_sparse)
     assert df.shape == (30, 1)
     assert df.loc[11, 4][0] == 114
+    assert np.all(df.loc[11, :][0].index.values == np.array([0, 4, 8]))
 
 
 def test_array_to_df_structured(structured_numpy_array):
