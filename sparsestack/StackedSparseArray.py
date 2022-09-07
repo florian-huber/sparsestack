@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from numpy.lib import recfunctions
+import pandas as pd
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
-
+from sparsestack.utils import array_to_df
 
 _slicing_not_implemented_msg = "Wrong slicing, or option not yet implemented"
 
@@ -195,9 +196,7 @@ class StackedSparseArray:
     def score_names(self):
         if self.data is None:
             return []
-        if self.data.dtype.names is None:
-            return [self.data.dtype.str]
-        return self.data.dtype.names
+        return self.data.columns
 
     def clone(self):
         """ Returns clone (deepcopy) of StackedSparseArray instance."""
@@ -208,7 +207,8 @@ class StackedSparseArray:
         return cloned_array
 
     def add_dense_matrix(self, matrix: np.ndarray,
-                         name: str):
+                         name: str,
+                         join_mode: str = "left"):
         """Add dense array (numpy array) to stacked sparse scores.
 
         If the StackedSparseArray is still empty, the full dense matrix will
@@ -227,34 +227,15 @@ class StackedSparseArray:
             the added scores, for instance via `sss_array.toarray("my_score_name")`.
 
         """
-        if matrix is None:
-            self.data = np.array([])
-        elif len(matrix.dtype) > 1:  # if structured array
-            for dtype_name in matrix.dtype.names:
-                self._add_dense_matrix(matrix[dtype_name], f"{name}_{dtype_name}")
-        else:
-            self._add_dense_matrix(matrix, name)
+        if matrix is None and self.data is None:  # TODO: necessary? if not better remove this!
+            self.data = pd.DataFrame([])
 
-    def _add_dense_matrix(self, matrix, name):
-        if matrix.dtype.type == np.void:
-            input_dtype = matrix.dtype[0]
+        # Convert numpy array to COO-style DataFrame
+        matrix_sparse_df = array_to_df(matrix, name)
+        if self.data is None:
+            self.data = matrix_sparse_df
         else:
-            input_dtype = matrix.dtype
-
-        # Handle 1D arrays
-        if matrix.ndim == 1:
-            matrix = matrix.reshape(-1, 1)
-
-        if self.shape[2] == 0 or (self.shape[2] == 1 and name in self.score_names):
-            # Add first (sparse) array of scores
-            (idx_row, idx_col) = np.where(matrix)
-            self.row = idx_row
-            self.col = idx_col
-            self.data = np.array(matrix[idx_row, idx_col], dtype=[(name, input_dtype)])
-        else:
-            # Add new stack of scores
-            self.data = recfunctions.append_fields(self.data, name, matrix[self.row, self.col],
-                                                    dtypes=input_dtype, fill_value=0).data
+            self.data = self.data.join(matrix_sparse_df, how=join_mode)
 
     def guess_score_name(self):
         if len(self.score_names) == 1:
