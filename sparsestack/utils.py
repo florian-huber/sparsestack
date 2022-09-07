@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 
 
-def array_to_df(input_array):
+def array_to_df(input_array,
+                name=None):
     """Convert numpy array (including structured ones) to pandas DataFrame.
     """
     if input_array is None:
@@ -17,7 +18,18 @@ def array_to_df(input_array):
     else:
         (idx_row, idx_col) = np.where(input_array)
 
-    df = pd.DataFrame(input_array[idx_row, idx_col])
+    if name is None:
+        df = pd.DataFrame(input_array[idx_row, idx_col])
+    else:
+        if len(input_array.dtype) > 1:  # if structured array
+            column_names = []
+            for dtype_name in input_array.dtype.names:
+                column_names.append(f"{name}{dtype_name}")
+        else:
+            column_names = [name]
+        df = pd.DataFrame(input_array[idx_row, idx_col])
+        df.columns = column_names
+
     df = df.set_index([idx_row, idx_col])
 
     return df

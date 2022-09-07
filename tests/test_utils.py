@@ -30,3 +30,7 @@ def test_array_to_df_structured(structured_numpy_array):
     df = array_to_df(structured_numpy_array)
     assert df.shape == (4, 2)
     assert df.loc[1, 1]["y"] == 5.5
+
+    # with name
+    df = array_to_df(structured_numpy_array, "Whatever_")
+    assert df.loc[1, 1]["Whatever_y"] == 5.5
