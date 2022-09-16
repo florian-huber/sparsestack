@@ -4,7 +4,7 @@ from numpy.lib import recfunctions
 import pandas as pd
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
-from sparsestack.utils import array_to_df
+from .utils import array_to_df
 
 _slicing_not_implemented_msg = "Wrong slicing, or option not yet implemented"
 
@@ -53,8 +53,8 @@ class StackedSparseArray:
         self.__n_row = n_row
         self.__n_col = n_col
         self.idx_dtype = get_index_dtype(maxval=max(n_row, n_col))
-        self.row = np.array([], dtype=self.idx_dtype)
-        self.col = np.array([], dtype=self.idx_dtype)
+        #self.row = np.array([], dtype=self.idx_dtype)
+        #self.col = np.array([], dtype=self.idx_dtype)
         self.data = None
 
     def __repr__(self):
@@ -98,7 +98,8 @@ class StackedSparseArray:
         # e.g.: matrix[3, 7, "score_1"]
         if isinstance(row, int) and isinstance(col, int):
             idx = np.where((self.row == row) & (self.col == col))
-            return self.row[idx], self.col[idx], self._slicing_data(name, idx)
+            #return self.row[idx], self.col[idx], self._slicing_data(name, idx)
+            return self.data[row, col, name]
         # e.g.: matrix[3, :, "score_1"]
         if isinstance(row, int) and isinstance(col, slice):
             self._is_implemented_slice(col)
@@ -189,6 +190,14 @@ class StackedSparseArray:
         return x
 
     @property
+    def row(self):
+        return np.array(self.data.index.get_level_values(level=0))
+
+    @property
+    def col(self):
+        return np.array(self.data.index.get_level_values(level=1))
+
+    @property
     def shape(self):
         return self.__n_row, self.__n_col, len(self.score_names)
 
@@ -201,8 +210,6 @@ class StackedSparseArray:
     def clone(self):
         """ Returns clone (deepcopy) of StackedSparseArray instance."""
         cloned_array = StackedSparseArray(self.__n_row, self.__n_col)
-        cloned_array.row = self.row
-        cloned_array.col = self.col
         cloned_array.data = self.data
         return cloned_array
 
@@ -359,9 +366,7 @@ class StackedSparseArray:
         idx = np.where(above_operator(self.data[name], low)
                        & below_operator(self.data[name], high))
         cloned_array = StackedSparseArray(self.__n_row, self.__n_col)
-        cloned_array.col = self.col[idx]
-        cloned_array.row = self.row[idx]
-        cloned_array.data = self.data[idx]
+        cloned_array.data = self.data.iloc[idx]
         return cloned_array
 
     def to_array(self, name=None):
