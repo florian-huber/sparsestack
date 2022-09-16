@@ -72,11 +72,11 @@ def test_sparsestack_no_setter():
 def test_sparsestack_class_name(dense_array_sparse):
     matrix = StackedSparseArray(12, 10)
     matrix.add_dense_matrix(dense_array_sparse, "test_score")
-    msg = "<12x10x1 stacked sparse array containing scores for ('test_score',)" \
+    msg = "<12x10x1 stacked sparse array containing scores for ['test_score']" \
         " with 30 stored elements in COOrdinate format>"
     assert matrix.__repr__() == msg
     msg2 = "StackedSparseArray array of shape (12, 10, 1) containing scores for" \
-        " ('test_score',)."
+        " ['test_score']."
     assert str(matrix) == msg2
 
 

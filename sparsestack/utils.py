@@ -36,3 +36,24 @@ def array_to_df(input_array,
     df = df.set_index([idx_row, idx_col])
 
     return df
+
+
+def coo_matrix_to_df(coo_matrix, name):
+    """Convert numpy array (including structured ones) to pandas DataFrame.
+    """
+    if coo_matrix is None:
+        return None
+    #assert isinstance(coo_matrix, np.ndarray), "Expected numpy array"
+
+    idx_row = coo_matrix.row
+    idx_col = coo_matrix.col
+
+    if name is None:
+        df = pd.DataFrame(data=coo_matrix.data,
+                          index=pd.MultiIndex.from_arrays([idx_row, idx_col]))
+    else:
+        df = pd.DataFrame(data=coo_matrix.data,
+                          index=pd.MultiIndex.from_arrays([idx_row, idx_col]),
+                          columns=[name])
+
+    return df

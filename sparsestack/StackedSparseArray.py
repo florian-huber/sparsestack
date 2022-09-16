@@ -4,7 +4,7 @@ from numpy.lib import recfunctions
 import pandas as pd
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
-from sparsestack.utils import array_to_df
+from sparsestack.utils import array_to_df, coo_matrix_to_df
 
 _slicing_not_implemented_msg = "Wrong slicing, or option not yet implemented"
 
@@ -205,7 +205,7 @@ class StackedSparseArray:
     def score_names(self):
         if self.data is None:
             return []
-        return self.data.columns
+        return self.data.columns.to_list()
 
     def clone(self):
         """ Returns clone (deepcopy) of StackedSparseArray instance."""
@@ -272,9 +272,7 @@ class StackedSparseArray:
         """
         if self.shape[2] == 0 or (self.shape[2] == 1 and name in self.score_names):
             # Add first (sparse) array of scores
-            self.data = np.array(coo_matrix.data, dtype=[(name, coo_matrix.dtype)])
-            self.row = coo_matrix.row.copy()
-            self.col = coo_matrix.col.copy()
+            self.data = coo_matrix_to_df(coo_matrix, name)
             self.__n_row, self.__n_col = coo_matrix.shape
         else:
             # TODO move into logger warning rather than assert
