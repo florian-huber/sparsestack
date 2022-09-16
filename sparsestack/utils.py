@@ -39,21 +39,26 @@ def array_to_df(input_array,
 
 
 def coo_matrix_to_df(coo_matrix, name):
-    """Convert numpy array (including structured ones) to pandas DataFrame.
+    """Convert sparse coo matrix to pandas DataFrame.
     """
     if coo_matrix is None:
         return None
-    #assert isinstance(coo_matrix, np.ndarray), "Expected numpy array"
 
     idx_row = coo_matrix.row
     idx_col = coo_matrix.col
 
+    return coo_values_to_df(coo_matrix.data, idx_row, idx_col, name)
+
+
+def coo_values_to_df(data, row, col, name):
+    """Convert sparse coo values to pandas DataFrame.
+    """
     if name is None:
-        df = pd.DataFrame(data=coo_matrix.data,
-                          index=pd.MultiIndex.from_arrays([idx_row, idx_col]))
+        df = pd.DataFrame(data=data,
+                          index=pd.MultiIndex.from_arrays([row, col]))
     else:
-        df = pd.DataFrame(data=coo_matrix.data,
-                          index=pd.MultiIndex.from_arrays([idx_row, idx_col]),
+        df = pd.DataFrame(data=data,
+                          index=pd.MultiIndex.from_arrays([row, col]),
                           columns=[name])
 
     return df

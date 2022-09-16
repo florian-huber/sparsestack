@@ -4,7 +4,7 @@ from numpy.lib import recfunctions
 import pandas as pd
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
-from sparsestack.utils import array_to_df, coo_matrix_to_df
+from sparsestack.utils import array_to_df, coo_matrix_to_df, coo_values_to_df
 
 _slicing_not_implemented_msg = "Wrong slicing, or option not yet implemented"
 
@@ -232,6 +232,8 @@ class StackedSparseArray:
         name
             Name of the score which is added. Will later be used to access and address
             the added scores, for instance via `sss_array.toarray("my_score_name")`.
+        join_mode
+            Choose from left, right, outer, inner to specify the merge type.
 
         """
         if matrix is None and self.data is None:  # TODO: necessary? if not better remove this!
@@ -291,11 +293,15 @@ class StackedSparseArray:
             self.data[name][new_entries] = coo_matrix.data
 
     def add_sparse_data(self, data: np.ndarray, name: str,
-                        row=None, col=None):
+                        row=None, col=None,
+                        join_mode: str = "left"):
         """Add sparse data to stacked sparse scores.
 
-        The given data must be of the same dimension as the current row/col values.
-        Or (if no data is present yet) row and col indices must be provided as well.
+        Adds sparse data of the form data + row, column indices.
+        If the given data is of the same dimension and order as the current row/col values,
+        row and col may be omitted (make sure the order is indeed correct!).
+        Otherwise please specify how you would like to merge the additional data to the
+        existing data by setting the join_mode.
 
         Parameters
         ----------
@@ -304,10 +310,27 @@ class StackedSparseArray:
         name
             Name of the score which is added. Will later be used to access and address
             the added scores, for instance via `sss_array.toarray("my_score_name")`.
+        join_mode
+            Choose from left, right, outer, inner to specify the merge type.
         """
         if isinstance(data, list):
             data = np.array(data)
 
+        if row is None or col is None:
+            assert len(self.col) == len(data), "Input data must be of same size, \
+                or row and col must be specified."
+            row = self.row
+            col = self.col
+
+        # Convert sparse data to DataFrame
+        sparse_df = coo_values_to_df(data, row, col, name)
+        if self.data is None:
+            self.data = sparse_df
+        else:
+            self.data = self.data.join(sparse_df, how=join_mode)
+
+        # TODO: handle structured sparse coo data?
+        """ 
         if data is None:
             self.data = np.array([])
         elif len(data.dtype) > 1:  # if structured array
@@ -320,6 +343,7 @@ class StackedSparseArray:
             self._add_sparse_data(data, row, col, name)
         else:
             self._add_sparse_data_to_existing(data, name)
+        """
 
     def _add_sparse_data(self, data, row, col, name):
         assert name not in self.score_names, "Scores of 'name' are already found in array"
