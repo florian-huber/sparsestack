@@ -13,8 +13,8 @@ def array_to_df(input_array,
     if input_array.ndim not in (1, 2):
         raise IndexError('Index dimension must be 1 or 2')
     if input_array.ndim == 1:
-        idx_row = np.where(input_array)
-        idx_col = np.zeros(idx_row)
+        idx_row = np.where(input_array)[0]
+        idx_col = np.zeros(idx_row.shape).astype(int)
     else:
         (idx_row, idx_col) = np.where(input_array)
 
@@ -27,7 +27,10 @@ def array_to_df(input_array,
                 column_names.append(f"{name}{dtype_name}")
         else:
             column_names = [name]
-        df = pd.DataFrame(input_array[idx_row, idx_col])
+        if input_array.ndim == 1:
+            df = pd.DataFrame(input_array[idx_row])
+        else:
+            df = pd.DataFrame(input_array[idx_row, idx_col])
         df.columns = column_names
 
     df = df.set_index([idx_row, idx_col])

@@ -4,7 +4,7 @@ from numpy.lib import recfunctions
 import pandas as pd
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
-from .utils import array_to_df
+from sparsestack.utils import array_to_df
 
 _slicing_not_implemented_msg = "Wrong slicing, or option not yet implemented"
 
