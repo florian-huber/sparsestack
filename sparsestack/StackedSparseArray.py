@@ -89,7 +89,7 @@ class StackedSparseArray:
         row, col, name = self._validate_indices(key)
         r, c, d = self._getitem_method(row, col, name)
         if isinstance(row, int) and isinstance(col, int):
-            if len(r) == 0:
+            if len(d) == 0:
                 return np.array([0])
             return d
         return r, c, d
@@ -99,17 +99,19 @@ class StackedSparseArray:
         if isinstance(row, int) and isinstance(col, int):
             idx = np.where((self.row == row) & (self.col == col))
             #return self.row[idx], self.col[idx], self._slicing_data(name, idx)
-            return self.data[row, col, name]
+            return row, col, self.data.iloc[idx][name].values
         # e.g.: matrix[3, :, "score_1"]
         if isinstance(row, int) and isinstance(col, slice):
             self._is_implemented_slice(col)
             idx = np.where(self.row == row)
-            return self.row[idx], self.col[idx], self._slicing_data(name, idx)
+            #return self.row[idx], self.col[idx], self._slicing_data(name, idx)
+            return self.row[idx], self.col[idx], self.data.iloc[idx][name].values.T
         # e.g.: matrix[:, 7, "score_1"]
         if isinstance(row, slice) and isinstance(col, int):
             self._is_implemented_slice(row)
             idx = np.where(self.col == col)
-            return self.row[idx], self.col[idx], self._slicing_data(name, idx)
+            #return self.row[idx], self.col[idx], self._slicing_data(name, idx)
+            return self.row[idx], self.col[idx], self.data.iloc[idx][name].values.T
         # matrix[:, :, "score_1"]
         if isinstance(row, slice) and isinstance(col, slice):
             self._is_implemented_slice(row)
