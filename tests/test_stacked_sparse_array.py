@@ -96,7 +96,12 @@ def test_sparsestack_add_coo(dense_array_sparse):
     assert np.all(c[:6] == np.array([2, 6, 0, 4, 8, 2]))
 
 
-def test_sparsestack_add_coo_2_times(dense_array_sparse):
+@pytest.mark.parametrize("nan_to_zeros, dtype_2", [
+    [True, np.int32],
+    [False, np.float64],
+])
+def test_sparsestack_add_coo_2_times(nan_to_zeros, dtype_2,
+                                     dense_array_sparse):
     sparse_array1 = coo_matrix(dense_array_sparse.astype(np.int32))
     dense_array_sparse[dense_array_sparse % 10 == 0] = 0
     dense_array_sparse = dense_array_sparse/2
@@ -104,15 +109,16 @@ def test_sparsestack_add_coo_2_times(dense_array_sparse):
 
     matrix = StackedSparseArray(12, 10)
     matrix.add_coo_matrix(sparse_array1, "scores1")
-    matrix.add_coo_matrix(sparse_array2, "scores2")
+    matrix.add_coo_matrix(sparse_array2, "scores2", nan_to_zeros=nan_to_zeros)
     assert matrix.shape == (12, 10, 2)
     assert np.all(matrix.data["scores1"] == np.arange(2, 120, 4))
     expected = np.array([1, 3, 0, 7, 9, 11, 13, 0, 17, 19, 21,
                          23, 0, 27, 29, 31, 33, 0, 37, 39, 41,
                          43, 0, 47, 49, 51, 53, 0, 57, 59])
-    assert np.all(matrix.data["scores2"] == expected)
+    mask = ~(np.isnan(matrix.data["scores2"].values))
+    assert np.allclose(matrix.data["scores2"][mask], expected[mask])
     assert matrix.data["scores1"].dtype == np.int32
-    assert matrix.data["scores2"].dtype == np.int32
+    assert matrix.data["scores2"].dtype == dtype_2
 
     # Run filter
     matrix = matrix.filter_by_range("scores2", low=0, high=40)
@@ -152,11 +158,7 @@ def test_sparsestack_equality(dense_array_sparse):
     assert matrix != matrix_2
 
     matrix_2 = _create_array("scores1", "scores2")
-    matrix_2.row[0] = 99
-    assert matrix != matrix_2
-
-    matrix_2 = _create_array("scores1", "scores2")
-    matrix_2.col[0] = 99
+    matrix_2.data.rename(index={4: 5},inplace=True)
     assert matrix != matrix_2
 
 

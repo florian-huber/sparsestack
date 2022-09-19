@@ -77,7 +77,7 @@ class StackedSparseArray:
             return False
         if np.any(self.col != other.col):
             return False
-        if np.any(self.data != other.data):
+        if np.any(self.data.fillna(0) != other.data.fillna(0)):
             return False
         return True
 
@@ -215,7 +215,8 @@ class StackedSparseArray:
 
     def add_dense_matrix(self, matrix: np.ndarray,
                          name: str,
-                         join_mode: str = "left"):
+                         join_mode: str = "left",
+                         nan_to_zeros: bool = False):
         """Add dense array (numpy array) to stacked sparse scores.
 
         If the StackedSparseArray is still empty, the full dense matrix will
@@ -234,7 +235,8 @@ class StackedSparseArray:
             the added scores, for instance via `sss_array.toarray("my_score_name")`.
         join_mode
             Choose from left, right, outer, inner to specify the merge type.
-
+        nan_to_zeros
+            Default is False. If True, all NaNs in data will be converted to 0.
         """
         if matrix is None and self.data is None:  # TODO: necessary? if not better remove this!
             self.data = pd.DataFrame([])
@@ -245,6 +247,8 @@ class StackedSparseArray:
             self.data = matrix_sparse_df
         else:
             self.data = self.data.join(matrix_sparse_df, how=join_mode)
+            if nan_to_zeros is True:
+                self.data = self.data.fillna(0)
 
     def guess_score_name(self):
         if len(self.score_names) == 1:
@@ -253,14 +257,19 @@ class StackedSparseArray:
             raise KeyError("Array is empty.")
         raise KeyError("Name of score is required.")
 
-    def add_coo_matrix(self, coo_matrix, name):
+    def add_coo_matrix(self, coo_matrix,
+                       name,
+                       join_mode: str = "left",
+                       nan_to_zeros: bool = False):
         """Add sparse matrix (scipy COO-matrix) to stacked sparse scores.
 
         If the StackedSparseArray is still empty, the full sparse matrix will
         be added.
-        If the StackedSparseArray already contains one or more scores, than only
+        If the StackedSparseArray already contains one or more scores, than per default only
         those values of the input matrix will be added which have the same position
-        as already existing entries!
+        as already existing entries (join_mode="left")!
+        For different addition types, please specify how you would like to merge the additional
+        data to the existing data by setting the join_mode.
 
         Parameters
         ----------
@@ -270,27 +279,22 @@ class StackedSparseArray:
         name
             Name of the score which is added. Will later be used to access and address
             the added scores, for instance via `sss_array.toarray("my_score_name")`.
-
+        join_mode
+            Choose from left, right, outer, inner to specify the merge type.
+        nan_to_zeros
+            Default is False. If True, all NaNs in data will be converted to 0.
         """
-        if self.shape[2] == 0 or (self.shape[2] == 1 and name in self.score_names):
-            # Add first (sparse) array of scores
-            self.data = coo_matrix_to_df(coo_matrix, name)
-            self.__n_row, self.__n_col = coo_matrix.shape
+        # Convert sparse input matrix to COO-style DataFrame
+        matrix_sparse_df = coo_matrix_to_df(coo_matrix, name)
+        if self.data is None:
+            self.data = matrix_sparse_df
         else:
-            # TODO move into logger warning rather than assert
-            assert len(np.setdiff1d(coo_matrix.row, self.row)) == 0, "New, unknown row indices"
-            assert len(np.setdiff1d(coo_matrix.col, self.col)) == 0, "New, unknown col indices"
-            new_entries = []
-            # TODO: numbafy...
-            for i, coo_row_id in enumerate(coo_matrix.row):
-                idx = np.where((self.row == coo_row_id)
-                               & (self.col == coo_matrix.col[i]))[0][0]
-                new_entries.append(idx)
-
-            self.data = recfunctions.append_fields(self.data, name,
-                                                    np.zeros((len(self.row)), dtype=coo_matrix.dtype),
-                                                    fill_value=0).data
-            self.data[name][new_entries] = coo_matrix.data
+            self.data = self.data.join(matrix_sparse_df, how=join_mode)
+            if nan_to_zeros is True:
+                self.data = self.data.fillna(0)
+                if self.data[name].dtype != matrix_sparse_df[name].dtype:
+                    self.data[name] = self.data[name].astype(matrix_sparse_df[name].dtype)
+            #TODO since numpy integers do not allow NaNs we will often get an conversion int->float here
 
     def add_sparse_data(self, data: np.ndarray, name: str,
                         row=None, col=None,
