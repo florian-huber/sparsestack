@@ -192,7 +192,7 @@ def test_sparsestack_add_sparse_data_to_existing_fail(sparsestack_example):
 
     with pytest.raises(AssertionError) as exception:
         sparsestack_example.add_sparse_data(scores_too_few, "scoreB")
-    msg = "Data must be of same size as number of sparse values in the array"
+    msg = "Input data must be of same size, or row and col must be specified"
     assert msg in exception.value.args[0]
 
 

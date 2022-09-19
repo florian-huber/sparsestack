@@ -62,3 +62,15 @@ def coo_values_to_df(data, row, col, name):
                           columns=[name])
 
     return df
+
+
+def sparse_stack_to_array(input_sparse_stack):
+    """Convert sparse stack to dense numpy array.
+    """
+    # Create structured numpy array
+    n_rows, n_cols, _ = input_sparse_stack.shape
+    dtypes = list(zip(input_sparse_stack.data.columns, input_sparse_stack.data.dtypes))
+    array = np.zeros((n_rows, n_cols),
+                     dtype=dtypes)
+    array[input_sparse_stack.row, input_sparse_stack.col] = [row for row in input_sparse_stack.data.itertuples(index=False)]
+    return array

@@ -4,7 +4,7 @@ from numpy.lib import recfunctions
 import pandas as pd
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
-from sparsestack.utils import array_to_df, coo_matrix_to_df, coo_values_to_df
+from sparsestack.utils import array_to_df, coo_matrix_to_df, coo_values_to_df, sparse_stack_to_array
 
 _slicing_not_implemented_msg = "Wrong slicing, or option not yet implemented"
 
@@ -321,8 +321,7 @@ class StackedSparseArray:
             data = np.array(data)
 
         if row is None or col is None:
-            assert len(self.col) == len(data), "Input data must be of same size, \
-                or row and col must be specified."
+            assert len(self.col) == len(data), "Input data must be of same size, or row and col must be specified."
             row = self.row
             col = self.col
 
@@ -413,10 +412,10 @@ class StackedSparseArray:
                              dtype=self.data[name].dtype)
             array[self.row, self.col] = self.data[name]
             return array
-        array = np.zeros((self.__n_row, self.__n_col),
-                         dtype=self.data.dtype)
-        array[self.row, self.col] = self.data
-        return array
+        # array = np.zeros((self.__n_row, self.__n_col),s
+        #                  dtype=self.data.dtypes)
+        # array[self.row, self.col] = self.data.loc[self.row, self.col]
+        return sparse_stack_to_array(self)
 
     def to_coo(self, name):
         return coo_matrix((self.data[name], (self.row, self.col)),
