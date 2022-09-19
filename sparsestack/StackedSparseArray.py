@@ -53,8 +53,6 @@ class StackedSparseArray:
         self.__n_row = n_row
         self.__n_col = n_col
         self.idx_dtype = get_index_dtype(maxval=max(n_row, n_col))
-        #self.row = np.array([], dtype=self.idx_dtype)
-        #self.col = np.array([], dtype=self.idx_dtype)
         self.data = None
 
     def __repr__(self):
@@ -98,19 +96,16 @@ class StackedSparseArray:
         # e.g.: matrix[3, 7, "score_1"]
         if isinstance(row, int) and isinstance(col, int):
             idx = np.where((self.row == row) & (self.col == col))
-            #return self.row[idx], self.col[idx], self._slicing_data(name, idx)
             return row, col, self.data.iloc[idx][name].values
         # e.g.: matrix[3, :, "score_1"]
         if isinstance(row, int) and isinstance(col, slice):
             self._is_implemented_slice(col)
             idx = np.where(self.row == row)
-            #return self.row[idx], self.col[idx], self._slicing_data(name, idx)
             return self.row[idx], self.col[idx], self.data.iloc[idx][name].values.T
         # e.g.: matrix[:, 7, "score_1"]
         if isinstance(row, slice) and isinstance(col, int):
             self._is_implemented_slice(row)
             idx = np.where(self.col == col)
-            #return self.row[idx], self.col[idx], self._slicing_data(name, idx)
             return self.row[idx], self.col[idx], self.data.iloc[idx][name].values.T
         # matrix[:, :, "score_1"]
         if isinstance(row, slice) and isinstance(col, slice):
@@ -414,9 +409,6 @@ class StackedSparseArray:
                              dtype=self.data[name].dtype)
             array[self.row, self.col] = self.data[name]
             return array
-        # array = np.zeros((self.__n_row, self.__n_col),s
-        #                  dtype=self.data.dtypes)
-        # array[self.row, self.col] = self.data.loc[self.row, self.col]
         return sparse_stack_to_array(self)
 
     def to_coo(self, name):
