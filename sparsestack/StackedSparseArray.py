@@ -101,12 +101,12 @@ class StackedSparseArray:
         if isinstance(row, int) and isinstance(col, slice):
             self._is_implemented_slice(col)
             idx = np.where(self.row == row)
-            return self.row[idx], self.col[idx], self.data.iloc[idx][name].values.T
+            return self.row[idx], self.col[idx], self.data.iloc[idx][name].values.reshape(-1)
         # e.g.: matrix[:, 7, "score_1"]
         if isinstance(row, slice) and isinstance(col, int):
             self._is_implemented_slice(row)
             idx = np.where(self.col == col)
-            return self.row[idx], self.col[idx], self.data.iloc[idx][name].values.T
+            return self.row[idx], self.col[idx], self.data.iloc[idx][name].values.reshape(-1)
         # matrix[:, :, "score_1"]
         if isinstance(row, slice) and isinstance(col, slice):
             self._is_implemented_slice(row)
@@ -246,6 +246,9 @@ class StackedSparseArray:
             self.data = self.data.join(matrix_sparse_df, how=join_mode)
             if nan_to_zeros is True:
                 self.data = self.data.fillna(0)
+                if self.data[name].dtype != matrix_sparse_df[name].dtype:
+                    self.data[name] = self.data[name].astype(matrix_sparse_df[name].dtype)
+                #TODO since numpy integers do not allow NaNs we will often get an conversion int->float here
 
     def guess_score_name(self):
         if len(self.score_names) == 1:

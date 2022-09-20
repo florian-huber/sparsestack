@@ -249,7 +249,6 @@ def test_sparsestack_slicing_mostly_empty_array():
     "matrix[:2, 1, 0]",
     "matrix[:, 1:, 0]",
     "matrix[1, 1:, 0]",
-    "matrix[1, 1, :1]",
     "matrix[None]",
 ])
 def test_sparsestack_slicing_exceptions(dense_array_sparse, slicing_option):
