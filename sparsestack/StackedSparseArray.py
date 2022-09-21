@@ -3,7 +3,7 @@ import numpy as np
 from numpy.lib import recfunctions
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
-
+from .utils import get_idx_inner
 
 _slicing_not_implemented_msg = "Wrong slicing, or option not yet implemented"
 
@@ -292,17 +292,13 @@ class StackedSparseArray:
             # TODO move into logger warning rather than assert
             assert len(np.setdiff1d(coo_matrix.row, self.row)) == 0, "New, unknown row indices"
             assert len(np.setdiff1d(coo_matrix.col, self.col)) == 0, "New, unknown col indices"
-            new_entries = []
-            # TODO: numbafy...
-            for i, coo_row_id in enumerate(coo_matrix.row):
-                idx = np.where((self.row == coo_row_id)
-                               & (self.col == coo_matrix.col[i]))[0][0]
-                new_entries.append(idx)
+            new_entries = get_idx_inner(self.row, self.col, coo_matrix.row, coo_matrix.col)
 
             self.data = recfunctions.append_fields(self.data, name,
                                                     np.zeros((len(self.row)), dtype=coo_matrix.dtype),
                                                     fill_value=0).data
             self.data[name][new_entries] = coo_matrix.data
+            # TODO add different join options (inner, outer, ...)
 
     def add_sparse_data(self, data: np.ndarray, name: str,
                         row=None, col=None):
