@@ -96,7 +96,7 @@ class StackedSparseArray:
         # e.g.: matrix[3, 7, "score_1"]
         if isinstance(row, int) and isinstance(col, int):
             idx = np.where((self.row == row) & (self.col == col))
-            return row, col, self.data.iloc[idx][name].values
+            return row, col, self.data.iloc[idx][name].values  # TODO: make sure differnt datatypes don't get mixed!
         # e.g.: matrix[3, :, "score_1"]
         if isinstance(row, int) and isinstance(col, slice):
             self._is_implemented_slice(col)
