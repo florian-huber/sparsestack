@@ -5,6 +5,7 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
 from .utils import join_arrays
 
+
 _slicing_not_implemented_msg = "Wrong slicing, or option not yet implemented"
 
 
