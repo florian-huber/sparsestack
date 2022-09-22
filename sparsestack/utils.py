@@ -8,6 +8,7 @@ def join_arrays(row1, col1, data1,
                 join_type="left"):
     """Joins two (structured) sparse arrays.
     """
+    #pylint: disable=too-many-arguments
     if join_type == "left":
         data_join = rfn.append_fields(data1, name,
                                       np.zeros((len(row1)),
@@ -62,34 +63,3 @@ def get_idx(left_row, left_col, right_row, right_col,
         idx_left.append(np.where((left_row == r) & (left_col == c))[0][0])
         idx_right.append(np.where((right_row == r) & (right_col == c))[0][0])
     return idx_left, idx_right
-
-
-if __name__ == '__main__':
-    import time
-    arr1r = np.arange(0, 20000, 4)
-    arr1c = np.arange(0, 20000, 4)
-    arr2r = np.arange(0, 20000, 8)
-    arr2c = np.arange(0, 20000, 8)
-    
-    tstart = time.time()
-    for _ in range(100):
-        idx1, idx2 = get_idx_inner_brute_force(arr1r, arr1c, arr2r, arr2c)
-    print(f"Time: {time.time()-tstart}s")
-    
-    idx1, idx2 = get_idx_inner_brute_force(arr1r, arr1c, arr2r, arr2c)
-    #print(idx1)
-    idx1, idx2 = get_idx(arr1r, arr1c, arr2r, arr2c)
-    #print(np.sort(idx1))
-
-    tstart = time.time()
-    for _ in range(100):
-        idx1b, idx2b = get_idx(arr1r, arr1c, arr2r, arr2c)
-    print(f"Time: {time.time()-tstart}s")
-    #print(idx1, idx2)
-    a, b, c = join_arrays(arr1r, arr1c, arr1c, arr2r, arr2c, 1.1*arr2c, "test1", join_type="inner")
-    #print(c)
-    list1 = list(zip(arr1r, arr1c))
-    list2 = list(zip(arr2r, arr2c))
-    uniques = set(list1 + list2)
-    #uniques = set(zip(arr1r, arr1c) + zip(arr2r, arr2c))
-    print(len(uniques), len(list1), len(list2))
