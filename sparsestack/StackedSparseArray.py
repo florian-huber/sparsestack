@@ -3,7 +3,7 @@ import numpy as np
 from numpy.lib import recfunctions
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
-from .utils import get_idx_inner
+from .utils import join_arrays
 
 _slicing_not_implemented_msg = "Wrong slicing, or option not yet implemented"
 
@@ -263,7 +263,9 @@ class StackedSparseArray:
             raise KeyError("Array is empty.")
         raise KeyError("Name of score is required.")
 
-    def add_coo_matrix(self, coo_matrix, name):
+    def add_coo_matrix(self, coo_matrix,
+                       name,
+                       join_type="left"):
         """Add sparse matrix (scipy COO-matrix) to stacked sparse scores.
 
         If the StackedSparseArray is still empty, the full sparse matrix will
@@ -289,16 +291,14 @@ class StackedSparseArray:
             self.col = coo_matrix.col.copy()
             self.__n_row, self.__n_col = coo_matrix.shape
         else:
-            # TODO move into logger warning rather than assert
-            assert len(np.setdiff1d(coo_matrix.row, self.row)) == 0, "New, unknown row indices"
-            assert len(np.setdiff1d(coo_matrix.col, self.col)) == 0, "New, unknown col indices"
-            new_entries = get_idx_inner(self.row, self.col, coo_matrix.row, coo_matrix.col)
-
-            self.data = recfunctions.append_fields(self.data, name,
-                                                    np.zeros((len(self.row)), dtype=coo_matrix.dtype),
-                                                    fill_value=0).data
-            self.data[name][new_entries] = coo_matrix.data
-            # TODO add different join options (inner, outer, ...)
+            if join_type in ["outer", "right"]:
+                assert np.max(coo_matrix.row) <= self.shape[0], "COO matrix has dimension larger than sparse stack"
+                assert np.max(coo_matrix.col) <= self.shape[1], "COO matrix has dimension larger than sparse stack"
+            self.row, self.col, self.data = join_arrays(self.row, self.col, self.data,
+                                                        coo_matrix.row, coo_matrix.col,
+                                                        coo_matrix.data,
+                                                        name,
+                                                        join_type=join_type)
 
     def add_sparse_data(self, data: np.ndarray, name: str,
                         row=None, col=None):
