@@ -310,6 +310,7 @@ class StackedSparseArray:
         join_mode
             Choose from left, right, outer, inner to specify the merge type.
         """
+        # pylint: disable=too-many-arguments
         if self.shape[2] == 0 or (self.shape[2] == 1 and name in self.score_names):
             # Add first (sparse) array of scores
             self.data = np.array(data, dtype=[(name, data.dtype)])
