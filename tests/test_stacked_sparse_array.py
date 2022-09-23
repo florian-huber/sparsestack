@@ -160,23 +160,22 @@ def test_sparsestack_equality(dense_array_sparse):
     assert matrix != matrix_2
 
 
-@pytest.mark.parametrize("data_to_add", [
-    np.array([3, 2, 1.1]),
-    [3, 2, 1.1],
-])
-def test_sparsestack_add_sparse_data_to_empy(data_to_add):
+def test_sparsestack_add_sparse_data_to_empty():
     matrix = StackedSparseArray(5, 6)
     assert matrix.shape == (5, 6, 0)
     row = [0, 2, 4]
     col = [1, 0, 5]
-    matrix.add_sparse_data(data_to_add, "scoreA", row, col)
+    data_to_add = np.array([3, 2, 1.1])
+    matrix.add_sparse_data(row, col, data_to_add, "scoreA")
     assert matrix.shape == (5, 6, 1)
     assert np.all(matrix.data["scoreA"] == np.array([3, 2, 1.1]))
 
 
 def test_sparsestack_add_sparse_data_to_existing(sparsestack_example):
     new_scores = np.array([0.2, 0.5, 0.2, 0.1, 0.8, 1, 1])
-    sparsestack_example.add_sparse_data(new_scores, "scoreB")
+    row = sparsestack_example.row
+    col = sparsestack_example.col
+    sparsestack_example.add_sparse_data(row, col, new_scores, "scoreB")
     assert np.all(sparsestack_example.to_array("scoreB")[:, 2] == np.array([0.2, 0., 0.1, 0., 1.]))
     assert sparsestack_example.to_array().shape == (5, 6)
     assert sparsestack_example.to_array()["scoreA"].shape == (5, 6)
@@ -185,12 +184,14 @@ def test_sparsestack_add_sparse_data_to_existing(sparsestack_example):
     assert np.all(sparsestack_example.to_array()["scoreA"][3, :] == np.array([30, 0, 0, 0, 34, 0]))
 
 
-def test_sparsestack_add_sparse_data_to_existing_fail(sparsestack_example):
-    scores_too_few = np.array([0.2, 0.5, 0.2, 0.1, 0.8])
+def test_sparsestack_add_sparse_data_too_large(sparsestack_example):
+    data_to_add = np.array([0.1, 0.8])
+    row = np.array([50, 100])
+    col = np.array([0, 1])
 
     with pytest.raises(AssertionError) as exception:
-        sparsestack_example.add_sparse_data(scores_too_few, "scoreB")
-    msg = "Data must be of same size as number of sparse values in the array"
+        sparsestack_example.add_sparse_data(row, col, data_to_add, "scoreB", join_type="right")
+    msg = "row values have dimension larger than sparse stack"
     assert msg in exception.value.args[0]
 
 

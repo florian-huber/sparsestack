@@ -226,7 +226,6 @@ class StackedSparseArray:
         name
             Name of the score which is added. Will later be used to access and address
             the added scores, for instance via `sss_array.toarray("my_score_name")`.
-
         """
         if matrix is None:
             self.data = np.array([])
@@ -271,9 +270,10 @@ class StackedSparseArray:
 
         If the StackedSparseArray is still empty, the full sparse matrix will
         be added.
-        If the StackedSparseArray already contains one or more scores, than only
-        those values of the input matrix will be added which have the same position
-        as already existing entries!
+        Default join type is "left", which means that only those values
+        of the input matrix will be added which have the same position
+        as already existing entries.
+        Other possible join_type options are "inner", "right", "outer".
 
         Parameters
         ----------
@@ -283,30 +283,22 @@ class StackedSparseArray:
         name
             Name of the score which is added. Will later be used to access and address
             the added scores, for instance via `sss_array.toarray("my_score_name")`.
-
+        join_mode
+            Choose from left, right, outer, inner to specify the merge type.
         """
-        if self.shape[2] == 0 or (self.shape[2] == 1 and name in self.score_names):
-            # Add first (sparse) array of scores
-            self.data = np.array(coo_matrix.data, dtype=[(name, coo_matrix.dtype)])
-            self.row = coo_matrix.row.copy()
-            self.col = coo_matrix.col.copy()
-            self.__n_row, self.__n_col = coo_matrix.shape
-        else:
-            if join_type in ["outer", "right"]:
-                assert np.max(coo_matrix.row) <= self.shape[0], "COO matrix has dimension larger than sparse stack"
-                assert np.max(coo_matrix.col) <= self.shape[1], "COO matrix has dimension larger than sparse stack"
-            self.row, self.col, self.data = join_arrays(self.row, self.col, self.data,
-                                                        coo_matrix.row, coo_matrix.col,
-                                                        coo_matrix.data,
-                                                        name,
-                                                        join_type=join_type)
+        self.add_sparse_data(coo_matrix.row, coo_matrix.col, coo_matrix.data, name, join_type)
 
-    def add_sparse_data(self, data: np.ndarray, name: str,
-                        row=None, col=None):
+    def add_sparse_data(self, row, col, data: np.ndarray,
+                        name: str,
+                        join_type="left"):
         """Add sparse data to stacked sparse scores.
 
-        The given data must be of the same dimension as the current row/col values.
-        Or (if no data is present yet) row and col indices must be provided as well.
+        If the StackedSparseArray is still empty, the full sparse data will
+        be added.
+        Default join type is "left", which means that only those values
+        of the input data will be added which have the same position
+        as already existing entries.
+        Other possible join_type options are "inner", "right", "outer".
 
         Parameters
         ----------
@@ -315,35 +307,24 @@ class StackedSparseArray:
         name
             Name of the score which is added. Will later be used to access and address
             the added scores, for instance via `sss_array.toarray("my_score_name")`.
+        join_mode
+            Choose from left, right, outer, inner to specify the merge type.
         """
-        if isinstance(data, list):
-            data = np.array(data)
-
-        if data is None:
-            self.data = np.array([])
-        elif len(data.dtype) > 1:  # if structured array
-            for dtype_name in data.dtype.names:
-                if self.data is None:
-                    self._add_sparse_data(data[dtype_name], row, col, name + "_" + dtype_name)
-                else:
-                    self._add_sparse_data_to_existing(data[dtype_name], name + "_" + dtype_name)
-        elif self.data is None:
-            self._add_sparse_data(data, row, col, name)
+        if self.shape[2] == 0 or (self.shape[2] == 1 and name in self.score_names):
+            # Add first (sparse) array of scores
+            self.data = np.array(data, dtype=[(name, data.dtype)])
+            self.row = row.copy()
+            self.col = col.copy()
+            # self.__n_row, self.__n_col = coo_matrix.shape
         else:
-            self._add_sparse_data_to_existing(data, name)
-
-    def _add_sparse_data(self, data, row, col, name):
-        assert name not in self.score_names, "Scores of 'name' are already found in array"
-        self.row = np.array(row, dtype=self.idx_dtype)
-        self.col = np.array(col, dtype=self.idx_dtype)
-        self.data = np.array(data, dtype=[(name, data.dtype)])
-
-    def _add_sparse_data_to_existing(self, data, name):
-        assert data.shape[0] == self.row.shape[0], \
-            "Data must be of same size as number of sparse values in the array"
-        assert name not in self.score_names, "Scores of 'name' are already found in array"
-        self.data = recfunctions.append_fields(self.data, name, data,
-                                                dtypes=data.dtype, fill_value=0).data
+            if join_type in ["outer", "right"]:
+                assert np.max(row) <= self.shape[0], "row values have dimension larger than sparse stack"
+                assert np.max(col) <= self.shape[1], "column values have dimension larger than sparse stack"
+            self.row, self.col, self.data = join_arrays(self.row, self.col, self.data,
+                                                        row, col,
+                                                        data,
+                                                        name,
+                                                        join_type=join_type)
 
     def filter_by_range(self, name: str = None,
                         low=-np.inf, high=np.inf,

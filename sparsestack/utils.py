@@ -9,6 +9,10 @@ def join_arrays(row1, col1, data1,
     """Joins two (structured) sparse arrays.
     """
     #pylint: disable=too-many-arguments
+    if row1.dtype != row2.dtype:
+        row2 = row2.astype(row1.dtype)
+    if col1.dtype != col2.dtype:
+        col2 = col2.astype(col1.dtype)
     if join_type == "left":
         data_join = rfn.append_fields(data1, name,
                                       np.zeros((len(row1)),
