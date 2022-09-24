@@ -5,6 +5,8 @@
 # sparsestack
 Memory efficient stack of multiple 2D sparse arrays.
 
+![sparsestack-overview-figure](/docs/sparsestack_overview_01.png)
+
 
 ## First code example (until better readme is done...)
 
