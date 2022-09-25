@@ -17,7 +17,7 @@ with open(os.path.join(here, "sparsestack", "__version__.py")) as f:
 setup(
     name="sparsestack",
     version=version["__version__"],
-    description="Python library for to build and handle stacks of sparse COO arrays efficiently",
+    description="Python library to handle stacks of sparse COO arrays efficiently.",
     long_description=long_description,
     long_description_content_type='text/markdown',
     author="Florian Huber",
