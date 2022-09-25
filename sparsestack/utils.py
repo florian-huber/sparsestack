@@ -25,11 +25,18 @@ def join_arrays(row1, col1, data1,
         raise NotImplementedError
     if join_type == "inner":
         idx_inner_left, idx_inner_right = get_idx(row1, col1, row2, col2, join_type="inner")
-        data_join = rfn.merge_arrays([data1[idx_inner_left],
-                                      data2[idx_inner_right]])
+        data_join = rfn.append_fields(data1[idx_inner_left],
+                                      name,
+                                      data2[idx_inner_right]).data
+        # TODO check if name is handles correctly
         return row1[idx_inner_left], col1[idx_inner_left], data_join
     if join_type == "outer":
-        raise NotImplementedError
+        idx_left, idx_right = get_idx(row1, col1, row2, col2, join_type="outer")
+        data_join = rfn.append_fields(data1, name,
+                                      np.zeros((len(row1)),
+                                      dtype=data2.dtype),
+                                      fill_value=0).data
+        return row2, col2, data_join
     raise ValueError("Unknown join_type (must be 'left', 'right', 'inner', 'outer')")
 
 
