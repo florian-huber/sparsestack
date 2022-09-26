@@ -24,19 +24,19 @@ def test_join_arrays(row2, col2):
     assert np.allclose([x[1] for x in c], [0, 0, 10, 0, 20])
 
 @pytest.mark.parametrize("join_type, expected_data", [
-    ["left", [0, 0, 10, 0, 20]],
-    ["inner", [0, 10, 20]],
-    ["outer", [0, 0, 10, 0, 20]],
-    ["right", [0, 0, 10, 0, 20]],
+    ["left", [0, 0, 10, 15, 20]],
+    ["inner", [10, 15, 20]],
+    ["outer", [0, 0, 10, 15, 20, 25, 30]],
+    # ["right", [10, 15, 20, 25, 30]],  # Not yet implemented
 ])
 def test_join_arrays_join_types(join_type, expected_data):
     row1 = np.arange(0, 5, 1)
     col1 = np.arange(0, 5, 1)
-    row2 = np.arange(0, 5, 2)
-    col2 = np.arange(0, 5, 2)
+    row2 = np.arange(2, 7, 1)
+    col2 = np.arange(2, 7, 1)
     data1 = col1
     data2 = 5 * col2
 
     row, col, data = join_arrays(row1, col1, data1, row2, col2, data2, "test1",
                                  join_type=join_type)
-    assert np.allclose([x[1] for x in np.sort(data)], expected_data)
+    assert np.allclose(np.sort([x[1] for x in data]), expected_data)

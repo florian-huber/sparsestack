@@ -31,12 +31,14 @@ def join_arrays(row1, col1, data1,
         # TODO check if name is handles correctly
         return row1[idx_inner_left], col1[idx_inner_left], data_join
     if join_type == "outer":
-        idx_left, idx_right = get_idx(row1, col1, row2, col2, join_type="outer")
-        data_join = rfn.append_fields(data1, name,
-                                      np.zeros((len(row1)),
-                                      dtype=data2.dtype),
+        idx_left, idx_left_new, idx_right, idx_right_new, row_new, col_new = get_idx_outer(row1, col1, row2, col2)
+        data_join = np.zeros(len(row_new), dtype=data1.dtype)
+        data_join[idx_left_new] = data1[idx_left]
+        data_join = rfn.append_fields(data_join, name,
+                                      np.zeros((len(row_new)), dtype=data2.dtype),
                                       fill_value=0).data
-        return row2, col2, data_join
+        data_join[name][idx_right_new] = data2[idx_right]
+        return np.array(row_new, dtype=row1.dtype), np.array(col_new, dtype=col1.dtype), data_join
     raise ValueError("Unknown join_type (must be 'left', 'right', 'inner', 'outer')")
 
 
@@ -66,11 +68,43 @@ def get_idx(left_row, left_col, right_row, right_col,
         uniques = set(list2)
     elif join_type == "inner":
         uniques = set(list1).intersection(set(list2))
-    elif join_type == "outer":
-        uniques = set(list1).union(set(list2))
+    #elif join_type == "outer":
+    #    uniques = set(list1).union(set(list2))
+    else:
+        raise ValueError("Unknown join_type")
     idx_left = []
     idx_right = []
     for (r, c) in uniques:
-        idx_left.append(np.where((left_row == r) & (left_col == c))[0][0])
-        idx_right.append(np.where((right_row == r) & (right_col == c))[0][0])
-    return idx_left, idx_right
+        i_left = np.where((left_row == r) & (left_col == c))[0]
+        if len(i_left) > 0:
+            idx_left.append(i_left[0])
+        i_right = np.where((right_row == r) & (right_col == c))[0]
+        if len(i_right) > 0:
+            idx_right.append(i_right[0])
+    return idx_left, idx_right  # TODO make sure this works! Indexes are not all the same right now!!!
+
+
+@numba.jit(nopython=True)
+def get_idx_outer(left_row, left_col, right_row, right_col):
+    list1 = list(zip(left_row, left_col))
+    list2 = list(zip(right_row, right_col))
+    uniques = set(list1).union(set(list2))
+
+    idx_left = []
+    idx_left_new = []
+    idx_right = []
+    idx_right_new = []
+    row_new = []
+    col_new = []
+    for i, (r, c) in enumerate(uniques):
+        row_new.append(r)
+        col_new.append(c)
+        i_left = np.where((left_row == r) & (left_col == c))[0]
+        if len(i_left) > 0:
+            idx_left.append(i_left[0])
+            idx_left_new.append(i)
+        i_right = np.where((right_row == r) & (right_col == c))[0]
+        if len(i_right) > 0:
+            idx_right.append(i_right[0])
+            idx_right_new.append(i)
+    return idx_left, idx_left_new, idx_right, idx_right_new, row_new, col_new
