@@ -29,7 +29,7 @@ def join_arrays(row1, col1, data1,
         data_join = rfn.append_fields(data1[idx_inner_left],
                                       name,
                                       data2[idx_inner_right]).data
-        # TODO check if name is handles correctly
+        # TODO check if name is handled correctly
         return row1[idx_inner_left], col1[idx_inner_left], data_join
     if join_type == "outer":
         idx_left, idx_left_new, idx_right, idx_right_new, row_new, col_new = get_idx_outer(row1, col1, row2, col2)
@@ -83,7 +83,7 @@ def get_idx(left_row, left_col, right_row, right_col,
         i_right = np.where((right_row == r) & (right_col == c))[0]
         if len(i_right) > 0:
             idx_right.append(i_right[0])
-    return idx_left, idx_right  # TODO make sure this works! Indexes are not all the same right now!!!
+    return idx_left, idx_right
 
 
 @numba.jit(nopython=True)
