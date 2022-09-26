@@ -9,6 +9,7 @@ def join_arrays(row1, col1, data1,
     """Joins two (structured) sparse arrays.
     """
     #pylint: disable=too-many-arguments
+    #pylint: disable=too-many-locals
     if row1.dtype != row2.dtype:
         row2 = row2.astype(row1.dtype)
     if col1.dtype != col2.dtype:
@@ -72,6 +73,7 @@ def get_idx(left_row, left_col, right_row, right_col,
     #    uniques = set(list1).union(set(list2))
     else:
         raise ValueError("Unknown join_type")
+    uniques = sorted(list(uniques))
     idx_left = []
     idx_right = []
     for (r, c) in uniques:
@@ -86,9 +88,9 @@ def get_idx(left_row, left_col, right_row, right_col,
 
 @numba.jit(nopython=True)
 def get_idx_outer(left_row, left_col, right_row, right_col):
-    list1 = list(zip(left_row, left_col))
-    list2 = list(zip(right_row, right_col))
-    uniques = set(list1).union(set(list2))
+    #pylint: disable=too-many-locals
+    uniques = set(zip(left_row, left_col)).union(set(zip(right_row, right_col)))
+    uniques = sorted(list(uniques))
 
     idx_left = []
     idx_left_new = []
