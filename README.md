@@ -26,7 +26,7 @@ from sparsestack import StackedSparseArray
 scores1 = np.random.random((12, 10))
 scores1 = scores1[scores1 > 0.9]  # make "sparse"
 scores2 = np.random.random((12, 10))
-scores1 = scores1[scores1 > 0.75]  # make "sparse"
+scores2 = scores2[scores2 > 0.75]  # make "sparse"
 sparsestack = StackedSparseArray(12, 10)
 sparsestack.add_dense_matrix(scores1, "scores_1")
 
