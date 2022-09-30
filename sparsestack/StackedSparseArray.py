@@ -209,7 +209,8 @@ class StackedSparseArray:
         return cloned_array
 
     def add_dense_matrix(self, matrix: np.ndarray,
-                         name: str):
+                         name: str,
+                         join_type="left"):
         """Add dense array (numpy array) to stacked sparse scores.
 
         If the StackedSparseArray is still empty, the full dense matrix will
@@ -226,16 +227,20 @@ class StackedSparseArray:
         name
             Name of the score which is added. Will later be used to access and address
             the added scores, for instance via `sss_array.toarray("my_score_name")`.
+        join_mode
+            Choose from left, right, outer, inner to specify the merge type.
         """
         if matrix is None:
             self.data = np.array([])
         elif len(matrix.dtype) > 1:  # if structured array
             for dtype_name in matrix.dtype.names:
-                self._add_dense_matrix(matrix[dtype_name], f"{name}_{dtype_name}")
+                self._add_dense_matrix(matrix[dtype_name],
+                                       f"{name}_{dtype_name}",
+                                       join_type)
         else:
-            self._add_dense_matrix(matrix, name)
+            self._add_dense_matrix(matrix, name, join_type)
 
-    def _add_dense_matrix(self, matrix, name):
+    def _add_dense_matrix(self, matrix, name, join_type):
         if matrix.dtype.type == np.void:
             input_dtype = matrix.dtype[0]
         else:
@@ -253,8 +258,10 @@ class StackedSparseArray:
             self.data = np.array(matrix[idx_row, idx_col], dtype=[(name, input_dtype)])
         else:
             # Add new stack of scores
-            self.data = recfunctions.append_fields(self.data, name, matrix[self.row, self.col],
-                                                    dtypes=input_dtype, fill_value=0).data
+            (idx_row, idx_col) = np.where(matrix)
+            self.add_sparse_data(idx_row, idx_col, matrix[idx_row, idx_col],
+                                 name=name,
+                                 join_type=join_type)
 
     def guess_score_name(self):
         if len(self.score_names) == 1:
