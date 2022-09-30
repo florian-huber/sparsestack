@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from numpy.lib import recfunctions
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
 from .utils import join_arrays
