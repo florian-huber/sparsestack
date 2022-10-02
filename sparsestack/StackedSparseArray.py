@@ -319,10 +319,14 @@ class StackedSparseArray:
         # pylint: disable=too-many-arguments
         if self.shape[2] == 0 or (self.shape[2] == 1 and name in self.score_names):
             # Add first (sparse) array of scores
-            self.data = np.array(data, dtype=[(name, data.dtype)])
+            if len(data.dtype) > 1:  # if structured array
+                dtype_new = np.dtype({'names': [f"{name}_{x}" for x in data.dtype.names],
+                                      'formats': [x[0] for x in data.dtype.fields.values()]})
+                self.data = data.astype(dtype_new)
+            else:
+                self.data = np.array(data, dtype=[(name, data.dtype)])
             self.row = row.copy()
             self.col = col.copy()
-            # self.__n_row, self.__n_col = coo_matrix.shape
         else:
             if join_type in ["outer", "right"]:
                 assert np.max(row) <= self.shape[0], "row values have dimension larger than sparse stack"

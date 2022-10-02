@@ -171,6 +171,19 @@ def test_sparsestack_add_sparse_data_to_empty():
     assert np.all(matrix.data["scoreA"] == np.array([3, 2, 1.1]))
 
 
+def test_sparsestack_add_structured_sparse_data_to_empty():
+    matrix = StackedSparseArray(5, 6)
+    assert matrix.shape == (5, 6, 0)
+    row = [0, 2, 4]
+    col = [1, 0, 5]
+    data_to_add = np.array([(0.1, 3), (0.2, 2), (0.3, 1)],
+                           dtype=[('score', '<f8'), ('matches', '<i4')])
+    matrix.add_sparse_data(row, col, data_to_add, "scoreA")
+    assert matrix.shape == (5, 6, 2)
+    assert np.all(matrix.data["scoreA_score"] == np.array([0.1, 0.2, 0.3]))
+    assert np.all(matrix.data["scoreA_matches"] == np.array([3, 2, 1]))
+
+
 def test_sparsestack_add_sparse_data_to_existing(sparsestack_example):
     new_scores = np.array([0.2, 0.5, 0.2, 0.1, 0.8, 1, 1])
     row = sparsestack_example.row
