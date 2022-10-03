@@ -319,12 +319,7 @@ class StackedSparseArray:
         # pylint: disable=too-many-arguments
         if self.shape[2] == 0 or (self.shape[2] == 1 and name in self.score_names):
             # Add first (sparse) array of scores
-            if len(data.dtype) > 1:  # if structured array
-                dtype_new = np.dtype({'names': [f"{name}_{x}" for x in data.dtype.names],
-                                      'formats': [x[0] for x in data.dtype.fields.values()]})
-                self.data = data.astype(dtype_new)
-            else:
-                self.data = np.array(data, dtype=[(name, data.dtype)])
+            self.data = update_structed_array_names(data, name)
             self.row = row.copy()
             self.col = col.copy()
         else:
@@ -333,7 +328,7 @@ class StackedSparseArray:
                 assert np.max(col) <= self.shape[1], "column values have dimension larger than sparse stack"
             self.row, self.col, self.data = join_arrays(self.row, self.col, self.data,
                                                         row, col,
-                                                        data,
+                                                        update_structed_array_names(data, name),
                                                         name,
                                                         join_type=join_type)
 
@@ -398,6 +393,14 @@ class StackedSparseArray:
     def to_coo(self, name):
         return coo_matrix((self.data[name], (self.row, self.col)),
                           shape=(self.__n_row, self.__n_col))
+
+
+def update_structed_array_names(input_array: np.ndarray, name: str):
+    if len(input_array.dtype) > 1:  # if structured array
+        dtype_new = np.dtype({'names': [f"{name}_{x}" for x in input_array.dtype.names],
+                              'formats': [x[0] for x in input_array.dtype.fields.values()]})
+        return input_array.astype(dtype_new)
+    return np.array(input_array, dtype=[(name, input_array.dtype)])
 
 
 def _unpack_index(index):

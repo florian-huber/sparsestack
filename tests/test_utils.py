@@ -10,8 +10,8 @@ from sparsestack.utils import join_arrays
 def test_join_arrays(row2, col2):
     row1 = np.arange(0, 20, 4)
     col1 = np.arange(0, 5, 1)
-    data1 = col1
-    data2 = 5 * col2
+    data1 = np.array(col1, dtype=[("layer1", col1.dtype)])
+    data2 = np.array(5 * col2, dtype=[("layer1", col2.dtype)])
 
     a, b, c = join_arrays(row1, col1, data1, row2, col2, data2, "test1", join_type="inner")
     assert np.allclose(np.sort(a), [0, 8, 16])
@@ -34,8 +34,8 @@ def test_join_arrays_join_types(join_type, expected_data, expected_row):
     col1 = np.array([0, 1, 2, 4, 5])
     row2 = np.array([7, 5, 3, 6, 2])
     col2 = np.array([7, 5, 3, 6, 2])
-    data1 = col1
-    data2 = col2
+    data1 = np.array(col1, dtype=[("layer1", col1.dtype)])
+    data2 = np.array(col2, dtype=[("layer2", col2.dtype)])
 
     row, col, data = join_arrays(row1, col1, data1, row2, col2, data2, "test1",
                                  join_type=join_type)

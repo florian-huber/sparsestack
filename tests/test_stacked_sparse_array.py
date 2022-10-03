@@ -160,7 +160,7 @@ def test_sparsestack_equality(dense_array_sparse):
     assert matrix != matrix_2
 
 
-def test_sparsestack_add_sparse_data_to_empty():
+def test_add_sparse_data_to_empty():
     matrix = StackedSparseArray(5, 6)
     assert matrix.shape == (5, 6, 0)
     row = [0, 2, 4]
@@ -171,7 +171,7 @@ def test_sparsestack_add_sparse_data_to_empty():
     assert np.all(matrix.data["scoreA"] == np.array([3, 2, 1.1]))
 
 
-def test_sparsestack_add_structured_sparse_data_to_empty():
+def test_add_structured_sparse_data_to_empty():
     matrix = StackedSparseArray(5, 6)
     assert matrix.shape == (5, 6, 0)
     row = [0, 2, 4]
@@ -184,8 +184,22 @@ def test_sparsestack_add_structured_sparse_data_to_empty():
     assert np.all(matrix.data["scoreA_matches"] == np.array([3, 2, 1]))
 
 
-def test_sparsestack_add_sparse_data_to_existing(sparsestack_example):
+def test_add_sparse_data_to_existing(sparsestack_example):
     new_scores = np.array([0.2, 0.5, 0.2, 0.1, 0.8, 1, 1])
+    row = sparsestack_example.row
+    col = sparsestack_example.col
+    sparsestack_example.add_sparse_data(row, col, new_scores, "scoreB")
+    assert np.all(sparsestack_example.to_array("scoreB")[:, 2] == np.array([0.2, 0., 0.1, 0., 1.]))
+    assert sparsestack_example.to_array().shape == (5, 6)
+    assert sparsestack_example.to_array()["scoreA"].shape == (5, 6)
+    assert sparsestack_example.to_array()["scoreB"].shape == (5, 6)
+    assert np.all(sparsestack_example.to_array()["scoreB"][:, 2] == np.array([0.2, 0., 0.1, 0., 1.]))
+    assert np.all(sparsestack_example.to_array()["scoreA"][3, :] == np.array([30, 0, 0, 0, 34, 0]))
+
+
+def test_add_structured_sparse_data_to_existing(sparsestack_example):
+    new_scores = np.array([(0.2, 5), (0.5, 4), (0.2, 3), (0.1, 2), (0.8, 1), (1, 0), (1, -1)],
+                          dtype=[('one', '<i4'), ('two', '<f8')])
     row = sparsestack_example.row
     col = sparsestack_example.col
     sparsestack_example.add_sparse_data(row, col, new_scores, "scoreB")
