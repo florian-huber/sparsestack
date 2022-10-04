@@ -17,9 +17,12 @@ def join_arrays(row1, col1, data1,
     if col1.dtype != col2.dtype:
         col2 = col2.astype(col1.dtype)
 
-    return _join_arrays(row1, col1, data1,
-                        row2, col2, data2, name,
-                        join_type=join_type)
+    r, c, d = _join_arrays(row1, col1, data1,
+                           row2, col2, data2, name,
+                           join_type=join_type)
+    # Sort by rows
+    idx = np.lexsort((c, r))
+    return r[idx], c[idx], d[idx]
 
 
 def _join_arrays(row1, col1, data1,
@@ -35,26 +38,20 @@ def _join_arrays(row1, col1, data1,
                                     np.arange(0, len(row1)), np.arange(0, len(row1)),
                                     idx_inner_right, idx_inner_left,
                                     len(row1))
-        #data_join = rfn.append_fields(data1, name,
-        #                              np.zeros((len(row1)),
-        #                              dtype=data2.dtype),
-        #                              fill_value=0).data
-        
-        #data_join[name][idx_inner_left] = data2[idx_inner_right]
         return row1, col1, data_join
     if join_type == "right":
-        raise NotImplementedError
+        idx_inner_left, idx_inner_right = get_idx(row1, col1, row2, col2, join_type="inner")
+        data_join = set_and_fill_new_array(data1, data2, name,
+                                    idx_inner_left, idx_inner_right,
+                                    np.arange(0, len(row2)), np.arange(0, len(row2)),
+                                    len(row2))
+        return row2, col2, data_join
     if join_type == "inner":
         idx_inner_left, idx_inner_right = get_idx(row1, col1, row2, col2, join_type="inner")
         data_join = set_and_fill_new_array(data1, data2, name,
                                            idx_inner_left, np.arange(0, len(idx_inner_left)),
                                            idx_inner_right, np.arange(0, len(idx_inner_left)),
                                            len(idx_inner_left))
-        
-        #data_join = rfn.append_fields(data1[idx_inner_left],
-        #                              name,
-        #                              data2[idx_inner_right]).data
-        # TODO check if name is handled correctly
         return row1[idx_inner_left], col1[idx_inner_left], data_join
     if join_type == "outer":
         idx_left, idx_left_new, idx_right, idx_right_new, row_new, col_new = get_idx_outer(row1, col1, row2, col2)

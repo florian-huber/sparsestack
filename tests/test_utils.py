@@ -25,6 +25,7 @@ def test_join_arrays(row2, col2):
 
 @pytest.mark.parametrize("join_type, expected_data, expected_row", [
     ["left", np.array([[0, 0], [1, 0], [2, 2], [4, 0], [5, 5]]), np.array([0, 1, 2, 4, 5])],
+    ["right", np.array([[2, 2],[0, 3], [5, 5], [0, 6], [0, 7],]), np.array([2, 3, 5, 6, 7])],
     ["inner", np.array([[2, 2], [5, 5]]), np.array([2, 5])],
     ["outer", np.array([[0, 0], [1, 0], [2, 2], [0, 3], [4, 0], [5, 5], [0, 6], [0, 7]]),
      np.array([0, 1, 2, 3, 4, 5, 6, 7])],
