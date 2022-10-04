@@ -65,6 +65,9 @@ def _join_arrays(row1, col1, data1,
 def set_and_fill_new_array(data1, data2, name,
                            idx_left, idx_left_new, idx_right, idx_right_new,
                            length):
+    """Create new structured numpy array and fill with data1 and data2.
+    """
+    #pylint: disable=too-many-arguments
     new_dtype = [(dname, d[0]) for dname, d in data1.dtype.fields.items()]
     if data2.dtype.names is None:
         new_dtype += [(name, data2.dtype)]
