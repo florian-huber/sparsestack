@@ -44,7 +44,7 @@ sparsestack[3, :, "scores_1"]  # => same as the one before
 scores2_after_merge = sparsestack.to_array("scores_2")
 ```
 
-## Adding data to a `sparsestack`array
+## Adding data to a `sparsestack`-array
 Sparsestack provides three options to add data to a new layer.
 1) `.add_dense_matrix(input_array)`
 Can be used to add all none-zero elements of `input_array` to the sparsestack. Depending on the chosen `join_type` either all such values will be added (`join_type="outer"` or `join_type="right"`), or only those which are already present in underlying layers ("left" or "inner" join).
@@ -52,3 +52,20 @@ Can be used to add all none-zero elements of `input_array` to the sparsestack. D
 This method will expect a COO-style matrix (e.g. scipy) which has attributes .row, .col and .data. The join type can again be specified using `join_type`.
 3) `.add_sparse_data(row, col, data)`
 This essentially does the same as `.add_sparse_matrix(input_coo_matrix)` but might in some cases be a bit more flexible because row, col and data are separate input arguments.
+
+## Accessing data from `sparsestack`-array
+The collected sparse data can be accessed in multiple ways.
+
+1) Slicing.
+`sparsestack` allows multiple types of slicing (see also code example above).
+```python
+sparsestack[3, 4]  # => tuple with all scores at position row=3, col=4
+sparsestack[3, :]  # => tuple with row, col, scores for all entries in row=3
+sparsestack[:, 2]  # => tuple with row, col, scores for all entries in col=2
+sparsestack[3, :, 0]  # => tuple with row, col, scores_1 for all entries in row=3
+sparsestack[3, :, "scores_1"]  # => same as the one before
+```
+2) `.to_array()`
+Creates and returns a dense numpy array of size `.shape`. Can also be used to create a dense numpy array of only a single layer when used like `.to_array(name="layerX")`.
+3) `.to_coo(name="layerX")`
+Returns a scipy sparse COO-matrix of the specified layer.
