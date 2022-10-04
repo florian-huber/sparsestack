@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from typing_extensions import dataclass_transform
 import numpy as np
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
@@ -328,7 +329,7 @@ class StackedSparseArray:
                 assert np.max(col) <= self.shape[1], "column values have dimension larger than sparse stack"
             self.row, self.col, self.data = join_arrays(self.row, self.col, self.data,
                                                         row, col,
-                                                        update_structed_array_names(data, name),
+                                                        data,
                                                         name,
                                                         join_type=join_type)
 
