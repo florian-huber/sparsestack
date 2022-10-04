@@ -43,3 +43,12 @@ sparsestack[3, :, "scores_1"]  # => same as the one before
 # Scores can also be converted to a dense numpy array:
 scores2_after_merge = sparsestack.to_array("scores_2")
 ```
+
+## Adding data to a `sparsestack`array
+Sparsestack provides three options to add data to a new layer.
+1) `.add_dense_matrix(input_array)`
+Can be used to add all none-zero elements of `input_array` to the sparsestack. Depending on the chosen `join_type` either all such values will be added (`join_type="outer"` or `join_type="right"`), or only those which are already present in underlying layers ("left" or "inner" join).
+2) `.add_sparse_matrix(input_coo_matrix)`
+This method will expect a COO-style matrix (e.g. scipy) which has attributes .row, .col and .data. The join type can again be specified using `join_type`.
+3) `.add_sparse_data(row, col, data)`
+This essentially does the same as `.add_sparse_matrix(input_coo_matrix)` but might in some cases be a bit more flexible because row, col and data are separate input arguments.
