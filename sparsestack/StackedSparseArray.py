@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from typing_extensions import dataclass_transform
 import numpy as np
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype

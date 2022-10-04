@@ -1,6 +1,5 @@
 import numba
 import numpy as np
-import numpy.lib.recfunctions as rfn
 
 
 def join_arrays(row1, col1, data1,
@@ -9,7 +8,6 @@ def join_arrays(row1, col1, data1,
     """Joins two (structured) sparse arrays.
     """
     #pylint: disable=too-many-arguments
-    #pylint: disable=too-many-locals
 
     # Harmonize row and col dtype
     if row1.dtype != row2.dtype:
@@ -31,20 +29,22 @@ def _join_arrays(row1, col1, data1,
     """Join array (numpy array, not structured)
     """
     #pylint: disable=too-many-arguments
+    #pylint: disable=too-many-locals
+
     # join types
     if join_type == "left":
         idx_inner_left, idx_inner_right = get_idx(row1, col1, row2, col2, join_type="inner")
         data_join = set_and_fill_new_array(data1, data2, name,
-                                    np.arange(0, len(row1)), np.arange(0, len(row1)),
-                                    idx_inner_right, idx_inner_left,
-                                    len(row1))
+                                           np.arange(0, len(row1)), np.arange(0, len(row1)),
+                                           idx_inner_right, idx_inner_left,
+                                           len(row1))
         return row1, col1, data_join
     if join_type == "right":
         idx_inner_left, idx_inner_right = get_idx(row1, col1, row2, col2, join_type="inner")
         data_join = set_and_fill_new_array(data1, data2, name,
-                                    idx_inner_left, idx_inner_right,
-                                    np.arange(0, len(row2)), np.arange(0, len(row2)),
-                                    len(row2))
+                                           idx_inner_left, idx_inner_right,
+                                           np.arange(0, len(row2)), np.arange(0, len(row2)),
+                                           len(row2))
         return row2, col2, data_join
     if join_type == "inner":
         idx_inner_left, idx_inner_right = get_idx(row1, col1, row2, col2, join_type="inner")
@@ -65,25 +65,25 @@ def _join_arrays(row1, col1, data1,
 def set_and_fill_new_array(data1, data2, name,
                            idx_left, idx_left_new, idx_right, idx_right_new,
                            length):
-        new_dtype = [(dname, d[0]) for dname, d in data1.dtype.fields.items()]
-        if data2.dtype.names is None:
-            new_dtype += [(name, data2.dtype)]
-        else:
-            new_dtype += [(f"{name}_{dname}", d[0]) for dname, d in data2.dtype.fields.items()]
-        data_join = np.zeros(shape=(length), dtype=new_dtype)
+    new_dtype = [(dname, d[0]) for dname, d in data1.dtype.fields.items()]
+    if data2.dtype.names is None:
+        new_dtype += [(name, data2.dtype)]
+    else:
+        new_dtype += [(f"{name}_{dname}", d[0]) for dname, d in data2.dtype.fields.items()]
+    data_join = np.zeros(shape=(length), dtype=new_dtype)
 
-        # Add previous layers
-        for dname in data1.dtype.names:
-            data_join[dname][idx_left_new] = data1[dname][idx_left]
-        # Add new layers
-        if data2.dtype.names is None:
-            data_join[name][idx_right_new] = data2[idx_right]
-        #elif len(data2.dtype) == 1:
-        #    data_join[name][idx_right_new] = data2[data2.dtype.names[0]][idx_right]
-        else:
-            for dname in data2.dtype.names:
-                data_join[f"{name}_{dname}"][idx_right_new] = data2[dname][idx_right]
-        return data_join
+    # Add previous layers
+    for dname in data1.dtype.names:
+        data_join[dname][idx_left_new] = data1[dname][idx_left]
+    # Add new layers
+    if data2.dtype.names is None:
+        data_join[name][idx_right_new] = data2[idx_right]
+    #elif len(data2.dtype) == 1:
+    #    data_join[name][idx_right_new] = data2[data2.dtype.names[0]][idx_right]
+    else:
+        for dname in data2.dtype.names:
+            data_join[f"{name}_{dname}"][idx_right_new] = data2[dname][idx_right]
+    return data_join
 
 
 @numba.jit(nopython=True)
