@@ -387,7 +387,7 @@ class StackedSparseArray:
             return array
         array = np.zeros((self.__n_row, self.__n_col),
                          dtype=self.data.dtype)
-        array[self.row, self.col] = self.data
+        array[self.row, self.col] = self.data.reshape(-1)
         return array
 
     def to_coo(self, name):
@@ -396,11 +396,15 @@ class StackedSparseArray:
 
 
 def update_structed_array_names(input_array: np.ndarray, name: str):
-    if len(input_array.dtype) > 1:  # if structured array
+    if input_array.dtype.names is None:  # no structured array
+        return np.array(input_array, dtype=[(name, input_array.dtype)])
+    if (name == "") or name is None:
+        dtype_new = np.dtype({'names': [f"{x}" for x in input_array.dtype.names],
+                              'formats': [x[0] for x in input_array.dtype.fields.values()]})
+    else:
         dtype_new = np.dtype({'names': [f"{name}_{x}" for x in input_array.dtype.names],
                               'formats': [x[0] for x in input_array.dtype.fields.values()]})
-        return input_array.astype(dtype_new)
-    return np.array(input_array, dtype=[(name, input_array.dtype)])
+    return input_array.astype(dtype_new)
 
 
 def _unpack_index(index):

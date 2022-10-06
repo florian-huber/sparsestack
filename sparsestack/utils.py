@@ -71,6 +71,8 @@ def set_and_fill_new_array(data1, data2, name,
     new_dtype = [(dname, d[0]) for dname, d in data1.dtype.fields.items()]
     if data2.dtype.names is None:
         new_dtype += [(name, data2.dtype)]
+    elif (name == "") or name is None:
+        new_dtype += [(f"{dname}", d[0]) for dname, d in data2.dtype.fields.items()]
     else:
         new_dtype += [(f"{name}_{dname}", d[0]) for dname, d in data2.dtype.fields.items()]
     data_join = np.zeros(shape=(length), dtype=new_dtype)
