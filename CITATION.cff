@@ -1,0 +1,15 @@
+# YAML 1.2
+---
+abstract: "Memory efficient stack of multiple 2D sparse arrays."
+authors:
+  -
+    affiliation: "Centre for Digitalisation and Digitality, Univery of Applied Sciences Düsseldorf"
+    family-names: Huber
+    given-names: Florian
+    orcid: https://orcid.org/0000-0002-3535-9406
+
+cff-version: 1.2.0
+license: "MIT Licence"
+message: "If you use this software, please cite it using these metadata."
+repository-code: "https://github.com/florian-huber/sparsestack"
+title: sparsestack
