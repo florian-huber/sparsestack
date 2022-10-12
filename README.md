@@ -1,5 +1,6 @@
 ![GitHub](https://img.shields.io/github/license/florian-huber/sparsestack)
 [![PyPI](https://img.shields.io/pypi/v/sparsestack?color=teal)](https://pypi.org/project/sparsestack/)
+[![Conda](https://img.shields.io/conda/v/conda-forge/sparsestack?color=blue)](https://anaconda.org/conda-forge/sparsestack)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/florian-huber/sparsestack/CI%20Build)
 [![fair-software.eu](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu)
 
