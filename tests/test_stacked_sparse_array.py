@@ -19,10 +19,19 @@ def sparsestack_example(dense_array_sparse):
     return matrix
 
 
+@pytest.fixture
+def sparsestack_example_2layers(dense_array_sparse):
+    matrix = StackedSparseArray(5, 6)
+    matrix.add_dense_matrix(dense_array_sparse[:5, :6], "scoreA")
+    matrix.add_dense_matrix(0.1 * dense_array_sparse[:5, :6], "scoreB")
+    return matrix
+
+
 def test_sparsestack_empty():
     matrix = StackedSparseArray(200, 100)
     assert matrix.shape == (200, 100, 0)
     assert matrix.score_names == []
+    assert matrix.to_array() is None
 
 
 def test_sparsestack_add_dense_array():
@@ -349,3 +358,9 @@ def test_missing_score_name():
     with pytest.raises(KeyError) as exception:
         _ = matrix.guess_score_name()
     assert msg in exception.value.args[0]
+
+
+def test_to_dict(sparsestack_example_2layers):
+    sparsestack_dict = sparsestack_example_2layers.to_dict()
+    expected_keys = {"n_row", "n_col", "row", "col", "data"}
+    assert expected_keys == sparsestack_dict.keys()

@@ -387,12 +387,24 @@ class StackedSparseArray:
             return array
         array = np.zeros((self.__n_row, self.__n_col),
                          dtype=self.data.dtype)
-        array[self.row, self.col] = self.data.reshape(-1)
+        if len(self.row) > 0 and len(self.col) > 0:
+            array[self.row, self.col] = self.data.reshape(-1)
         return array
 
     def to_coo(self, name):
         return coo_matrix((self.data[name], (self.row, self.col)),
                           shape=(self.__n_row, self.__n_col))
+
+    def to_dict(self):
+        """Convert StackedSparseArray to dictionary.
+        """
+        return {
+            "n_row": self.__n_row,
+            "n_col": self.__n_col,
+            "row": self.row.tolist(),
+            "col": self.col.tolist(),
+            "data": self.data.tolist(),
+        }
 
 
 def update_structed_array_names(input_array: np.ndarray, name: str):
