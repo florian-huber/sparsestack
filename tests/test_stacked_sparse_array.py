@@ -362,7 +362,7 @@ def test_missing_score_name():
 
 def test_to_dict(sparsestack_example_2layers):
     sparsestack_dict = sparsestack_example_2layers.to_dict()
-    expected_keys = {"n_row", "n_col", "row", "col", "data"}
+    expected_keys = {"n_row", "n_col", "row", "col", "data", "dtype"}
     assert expected_keys == sparsestack_dict.keys()
 
     expected_row = [0, 1, 1, 2, 3, 3, 4]
@@ -371,3 +371,7 @@ def test_to_dict(sparsestack_example_2layers):
     expected_data_1 = [2, 10, 14, 22, 30, 34, 42]
     assert sparsestack_dict["data"][0] == (2, 0.2)
     assert [x[0] for x in sparsestack_dict["data"]] == expected_data_1
+
+    assert sparsestack_dict["dtype"].names == ("scoreA", "scoreB")
+    assert sparsestack_dict["dtype"]["scoreA"] == int
+    assert sparsestack_dict["dtype"]["scoreB"] == np.float64
