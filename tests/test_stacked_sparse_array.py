@@ -372,7 +372,8 @@ def test_to_dict(sparsestack_example_2layers):
     assert sparsestack_dict["data"][0] == (2, 0.2)
     assert [x[0] for x in sparsestack_dict["data"]] == expected_data_1
 
-    assert sparsestack_dict["dtype"] == [('scoreA', '<i4'), ('scoreB', '<f8')]
+    assert sparsestack_dict["dtype"][0][0] == 'scoreA'
+    assert sparsestack_dict["dtype"][1][0] == 'scoreB'
 
 
 def test_change_data_to_dict():
