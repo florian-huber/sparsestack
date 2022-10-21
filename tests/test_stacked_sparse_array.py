@@ -372,6 +372,13 @@ def test_to_dict(sparsestack_example_2layers):
     assert sparsestack_dict["data"][0] == (2, 0.2)
     assert [x[0] for x in sparsestack_dict["data"]] == expected_data_1
 
-    assert sparsestack_dict["dtype"].names == ("scoreA", "scoreB")
-    assert sparsestack_dict["dtype"]["scoreA"] == int
-    assert sparsestack_dict["dtype"]["scoreB"] == np.float64
+    assert sparsestack_dict["dtype"] == [('scoreA', '<i4'), ('scoreB', '<f8')]
+
+
+def test_change_data_to_dict():
+    sparsestack = StackedSparseArray(4, 3)
+    test_data = [(1.0, 3), (0.831479419283098, 1), (0.7963641376124944, 3)]
+    expected_data = [[1.0, 3], [0.831479419283098, 1], [0.7963641376124944, 3]]
+    sparsestack.data = np.array(test_data)
+    sparsestack_dict = sparsestack.to_dict()
+    assert sparsestack_dict["data"] == expected_data

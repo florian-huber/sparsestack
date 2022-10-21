@@ -404,7 +404,7 @@ class StackedSparseArray:
             "row": self.row.tolist(),
             "col": self.col.tolist(),
             "data": self.data.tolist(),
-            "dtype": self.data.dtype
+            "dtype": self.data.dtype.descr
         }
 
 
