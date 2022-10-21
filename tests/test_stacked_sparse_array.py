@@ -19,10 +19,19 @@ def sparsestack_example(dense_array_sparse):
     return matrix
 
 
+@pytest.fixture
+def sparsestack_example_2layers(dense_array_sparse):
+    matrix = StackedSparseArray(5, 6)
+    matrix.add_dense_matrix(dense_array_sparse[:5, :6], "scoreA")
+    matrix.add_dense_matrix(0.1 * dense_array_sparse[:5, :6], "scoreB")
+    return matrix
+
+
 def test_sparsestack_empty():
     matrix = StackedSparseArray(200, 100)
     assert matrix.shape == (200, 100, 0)
     assert matrix.score_names == []
+    assert matrix.to_array() is None
 
 
 def test_sparsestack_add_dense_array():
@@ -349,3 +358,28 @@ def test_missing_score_name():
     with pytest.raises(KeyError) as exception:
         _ = matrix.guess_score_name()
     assert msg in exception.value.args[0]
+
+
+def test_to_dict(sparsestack_example_2layers):
+    sparsestack_dict = sparsestack_example_2layers.to_dict()
+    expected_keys = {"n_row", "n_col", "row", "col", "data", "dtype"}
+    assert expected_keys == sparsestack_dict.keys()
+
+    expected_row = [0, 1, 1, 2, 3, 3, 4]
+    assert sparsestack_dict["row"] == expected_row
+
+    expected_data_1 = [2, 10, 14, 22, 30, 34, 42]
+    assert sparsestack_dict["data"][0] == (2, 0.2)
+    assert [x[0] for x in sparsestack_dict["data"]] == expected_data_1
+
+    assert sparsestack_dict["dtype"][0][0] == 'scoreA'
+    assert sparsestack_dict["dtype"][1][0] == 'scoreB'
+
+
+def test_change_data_to_dict():
+    sparsestack = StackedSparseArray(4, 3)
+    test_data = [(1.0, 3), (0.831479419283098, 1), (0.7963641376124944, 3)]
+    expected_data = [[1.0, 3], [0.831479419283098, 1], [0.7963641376124944, 3]]
+    sparsestack.data = np.array(test_data)
+    sparsestack_dict = sparsestack.to_dict()
+    assert sparsestack_dict["data"] == expected_data
