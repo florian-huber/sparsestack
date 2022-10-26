@@ -231,30 +231,33 @@ class StackedSparseArray:
         """
         if matrix is None:
             self.data = np.array([])
-        elif len(matrix.dtype) > 1:  # if structured array
-            for dtype_name in matrix.dtype.names:
-                self._add_dense_matrix(matrix[dtype_name],
-                                       f"{name}_{dtype_name}",
-                                       join_type)
         else:
             self._add_dense_matrix(matrix, name, join_type)
 
     def _add_dense_matrix(self, matrix, name, join_type):
-        if matrix.dtype.type == np.void:
-            input_dtype = matrix.dtype[0]
-        else:
-            input_dtype = matrix.dtype
+        def get_dtype(data):
+            if data.dtype.type == np.void:
+                return data.dtype[0]
+            return data.dtype
 
         # Handle 1D arrays
         if matrix.ndim == 1:
             matrix = matrix.reshape(-1, 1)
+
+        # Handle structured arrays > 1 dimension
+        if len(matrix.dtype) > 1:
+            dtype_data = [(f"{name}_{dtype_name}", get_dtype(matrix[dtype_name])) for dtype_name in matrix.dtype.names]
+        else:
+            dtype_data = [(name, get_dtype(matrix))]
+
 
         if self.shape[2] == 0 or (self.shape[2] == 1 and name in self.score_names):
             # Add first (sparse) array of scores
             (idx_row, idx_col) = np.where(matrix)
             self.row = idx_row
             self.col = idx_col
-            self.data = np.array(matrix[idx_row, idx_col], dtype=[(name, input_dtype)])
+
+            self.data = np.array(matrix[idx_row, idx_col], dtype=dtype_data)
         else:
             # Add new stack of scores
             (idx_row, idx_col) = np.where(matrix)
