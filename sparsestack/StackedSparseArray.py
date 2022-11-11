@@ -87,8 +87,7 @@ class StackedSparseArray:
         row, col, name = self._validate_indices(key)
         r, c, d = self._getitem_method(row, col, name)
         if isinstance(row, int) and isinstance(col, int):
-            if len(d) == 0:
-                return np.array([0])
+            # if len(d) == 0...
             return d
         return r, c, d
 
@@ -96,7 +95,10 @@ class StackedSparseArray:
         # e.g.: matrix[3, 7, "score_1"]
         if isinstance(row, int) and isinstance(col, int):
             idx = np.where((self.row == row) & (self.col == col))
-            return row, col, self.data.iloc[idx][name].values  # TODO: make sure differnt datatypes don't get mixed!
+            #return row, col, self.data.iloc[idx][name].values  # TODO: make sure differnt datatypes don't get mixed!
+            if len(idx[0]) > 0:
+                return row, col, self.data.loc[row, col][name]
+            return row, col, np.array([0])
         # e.g.: matrix[3, :, "score_1"]
         if isinstance(row, int) and isinstance(col, slice):
             self._is_implemented_slice(col)
@@ -192,10 +194,13 @@ class StackedSparseArray:
     @property
     def row(self):
         return np.array(self.data.index.get_level_values(level=0))
+        #return self.data.index.levels[0]
 
     @property
     def col(self):
         return np.array(self.data.index.get_level_values(level=1))
+        #return self.data.index.codes[1]
+        #return self.data.index.levels[1]
 
     @property
     def shape(self):
@@ -350,19 +355,6 @@ class StackedSparseArray:
         else:
             self._add_sparse_data_to_existing(data, name)
         """
-
-    def _add_sparse_data(self, data, row, col, name):
-        assert name not in self.score_names, "Scores of 'name' are already found in array"
-        self.row = np.array(row, dtype=self.idx_dtype)
-        self.col = np.array(col, dtype=self.idx_dtype)
-        self.data = np.array(data, dtype=[(name, data.dtype)])
-
-    def _add_sparse_data_to_existing(self, data, name):
-        assert data.shape[0] == self.row.shape[0], \
-            "Data must be of same size as number of sparse values in the array"
-        assert name not in self.score_names, "Scores of 'name' are already found in array"
-        self.data = recfunctions.append_fields(self.data, name, data,
-                                                dtypes=data.dtype, fill_value=0).data
 
     def filter_by_range(self, name: str = None,
                         low=-np.inf, high=np.inf,
