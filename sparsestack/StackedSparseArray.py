@@ -94,12 +94,12 @@ class StackedSparseArray:
     def _getitem_method(self, row, col, name):
         # e.g.: matrix[3, 7, "score_1"]
         if isinstance(row, int) and isinstance(col, int):
-            idx = np.where((self.row == row) & (self.col == col))
+            #idx = np.where((self.row == row) & (self.col == col))
             #return row, col, self.data.iloc[idx][name].values  # TODO: make sure differnt datatypes don't get mixed!
-            if len(idx[0]) > 0:
-                return 0, 0, self.data.filter((pl.col("row") == row) & (pl.col("col") == col))[name]
+            #if len(idx[0]) > 0:
+            return 0, 0, self.data.filter((pl.col("row") == row) & (pl.col("col") == col))[name]
                 #return row, col, self.data[row, col][name]
-            return row, col, np.array([0])
+            #return row, col, np.array([0])
         # e.g.: matrix[3, :, "score_1"]
         if isinstance(row, int) and isinstance(col, slice):
             self._is_implemented_slice(col)
