@@ -104,15 +104,16 @@ class StackedSparseArray:
         if isinstance(row, int) and isinstance(col, slice):
             self._is_implemented_slice(col)
             #rows_with_data = [r for r in row if r in self.row]
-            idx = np.where(self.row == row)
-            return self.row[idx], self.col[idx], self.data[idx, name].values.reshape(-1)
+            #return self.data.filter((pl.col("row") == row))[name]
+            idx = np.where(self.row == row)[0]
+            return self.row[idx], self.col[idx], self.data[idx, name].to_numpy().reshape(-1)
             #return self.row[idx], self.col[idx], self.data._values[idx].reshape(-1)
             #return self.row[idx], self.col[idx], self.data.loc[np.unique(self.row[idx]), :][name].values.reshape(-1)
         # e.g.: matrix[:, 7, "score_1"]
         if isinstance(row, slice) and isinstance(col, int):
             self._is_implemented_slice(row)
             idx = np.where(self.col == col)
-            return self.row[idx], self.col[idx], self.data[idx, name].values.reshape(-1)
+            return self.row[idx], self.col[idx], self.data[idx, name].to_numpy().reshape(-1)
         # matrix[:, :, "score_1"]
         if isinstance(row, slice) and isinstance(col, slice):
             self._is_implemented_slice(row)
