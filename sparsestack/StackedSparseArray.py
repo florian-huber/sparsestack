@@ -97,7 +97,7 @@ class StackedSparseArray:
             idx = np.where((self.row == row) & (self.col == col))
             #return row, col, self.data.iloc[idx][name].values  # TODO: make sure differnt datatypes don't get mixed!
             if len(idx[0]) > 0:
-                return self.data.filter((pl.col("row") == row) & (pl.col("col") == col))[name]
+                return 0, 0, self.data.filter((pl.col("row") == row) & (pl.col("col") == col))[name]
                 #return row, col, self.data[row, col][name]
             return row, col, np.array([0])
         # e.g.: matrix[3, :, "score_1"]
@@ -107,12 +107,13 @@ class StackedSparseArray:
             #return self.data.filter((pl.col("row") == row))[name]
             idx = np.where(self.row == row)[0]
             return self.row[idx], self.col[idx], self.data[idx, name].to_numpy().reshape(-1)
+            #return self.data[idx ]
             #return self.row[idx], self.col[idx], self.data._values[idx].reshape(-1)
             #return self.row[idx], self.col[idx], self.data.loc[np.unique(self.row[idx]), :][name].values.reshape(-1)
         # e.g.: matrix[:, 7, "score_1"]
         if isinstance(row, slice) and isinstance(col, int):
             self._is_implemented_slice(row)
-            idx = np.where(self.col == col)
+            idx = np.where(self.col == col)[0]
             return self.row[idx], self.col[idx], self.data[idx, name].to_numpy().reshape(-1)
         # matrix[:, :, "score_1"]
         if isinstance(row, slice) and isinstance(col, slice):
@@ -155,11 +156,13 @@ class StackedSparseArray:
         m, n, _ = self.shape
         row, col, name = _unpack_index(key)
         if row == col is None and isinstance(name, str):
-            return row, col, name
+            return row, col, [name, "row", "col"]
 
         if isinstance(name, int):
-            name = self.score_names[name]
+            name = [self.score_names[name]] + ["row", "col"]
 
+        if isinstance(name, slice) and name.start == name.stop == name.step is None:
+            name = self.score_names + ["row", "col"]
         row = validate_index(row, m)
         col = validate_index(col, n)
         return row, col, name
