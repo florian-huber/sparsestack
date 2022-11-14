@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from numpy.lib import recfunctions
-import pandas as pd
+import polars as pl
 from scipy.sparse import coo_matrix
 from scipy.sparse.sputils import get_index_dtype
 from sparsestack.utils import array_to_df, coo_matrix_to_df, coo_values_to_df, sparse_stack_to_array
@@ -97,21 +97,22 @@ class StackedSparseArray:
             idx = np.where((self.row == row) & (self.col == col))
             #return row, col, self.data.iloc[idx][name].values  # TODO: make sure differnt datatypes don't get mixed!
             if len(idx[0]) > 0:
-                return row, col, self.data.loc[row, col][name]
+                return self.data.filter((pl.col("row") == row) & (pl.col("col") == col))[name]
+                #return row, col, self.data[row, col][name]
             return row, col, np.array([0])
         # e.g.: matrix[3, :, "score_1"]
         if isinstance(row, int) and isinstance(col, slice):
             self._is_implemented_slice(col)
             #rows_with_data = [r for r in row if r in self.row]
             idx = np.where(self.row == row)
-            return self.row[idx], self.col[idx], self.data.iloc[idx][name].values.reshape(-1)
+            return self.row[idx], self.col[idx], self.data[idx, name].values.reshape(-1)
             #return self.row[idx], self.col[idx], self.data._values[idx].reshape(-1)
             #return self.row[idx], self.col[idx], self.data.loc[np.unique(self.row[idx]), :][name].values.reshape(-1)
         # e.g.: matrix[:, 7, "score_1"]
         if isinstance(row, slice) and isinstance(col, int):
             self._is_implemented_slice(row)
             idx = np.where(self.col == col)
-            return self.row[idx], self.col[idx], self.data.iloc[idx][name].values.reshape(-1)
+            return self.row[idx], self.col[idx], self.data[idx, name].values.reshape(-1)
         # matrix[:, :, "score_1"]
         if isinstance(row, slice) and isinstance(col, slice):
             self._is_implemented_slice(row)
@@ -193,12 +194,14 @@ class StackedSparseArray:
 
     @property
     def row(self):
-        return np.array(self.data.index.get_level_values(level=0))
+        return self.data.select("row").to_numpy().reshape(-1)
+        #return np.array(self.data.index.get_level_values(level=0))
         #return self.data.index.levels[0]
 
     @property
     def col(self):
-        return np.array(self.data.index.get_level_values(level=1))
+        return self.data.select("col").to_numpy().reshape(-1)
+        #return np.array(self.data.index.get_level_values(level=1))
         #return self.data.index.codes[1]
         #return self.data.index.levels[1]
 
@@ -210,7 +213,7 @@ class StackedSparseArray:
     def score_names(self):
         if self.data is None:
             return []
-        return self.data.columns.to_list()
+        return [x for x in self.data.columns if x not in ["row", "col"]]
 
     def clone(self):
         """ Returns clone (deepcopy) of StackedSparseArray instance."""
@@ -244,14 +247,14 @@ class StackedSparseArray:
             Default is False. If True, all NaNs in data will be converted to 0.
         """
         if matrix is None and self.data is None:  # TODO: necessary? if not better remove this!
-            self.data = pd.DataFrame([])
+            self.data = pl.DataFrame([])
 
         # Convert numpy array to COO-style DataFrame
         matrix_sparse_df = array_to_df(matrix, name)
         if self.data is None:
             self.data = matrix_sparse_df
         else:
-            self.data = self.data.join(matrix_sparse_df, how=join_mode)
+            self.data = self.data.join(matrix_sparse_df, how=join_mode, on=["row", "col"])
             if nan_to_zeros is True:
                 self.data = self.data.fillna(0)
                 if self.data[name].dtype != matrix_sparse_df[name].dtype:
@@ -386,7 +389,7 @@ class StackedSparseArray:
         idx = np.where(above_operator(self.data[name], low)
                        & below_operator(self.data[name], high))
         cloned_array = StackedSparseArray(self.__n_row, self.__n_col)
-        cloned_array.data = self.data.iloc[idx]
+        cloned_array.data = self.data[idx, :]
         return cloned_array
 
     def to_array(self, name=None):

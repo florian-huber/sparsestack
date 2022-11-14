@@ -1,5 +1,5 @@
 import numpy as np
-import pandas as pd
+import polars as pl
 
 
 def array_to_df(input_array,
@@ -18,22 +18,40 @@ def array_to_df(input_array,
     else:
         (idx_row, idx_col) = np.where(input_array)
 
-    if name is None:
-        df = pd.DataFrame(input_array[idx_row, idx_col])
+    df = pl.DataFrame()
+    if len(input_array.dtype) > 1:  # if structured array
+        if name is None:
+            name = ""
+        for dtype_name in input_array.dtype.names:
+            col_name = f"{name}{dtype_name}"
+            if input_array.ndim == 1:
+                df = df.with_columns([
+                    pl.Series(name=col_name, values=input_array[dtype_name][idx_row])
+                    ])
+            else:
+                df = df.with_columns([
+                    pl.Series(name=col_name, values=input_array[dtype_name][idx_row, idx_col])
+                    ])
     else:
-        if len(input_array.dtype) > 1:  # if structured array
-            column_names = []
-            for dtype_name in input_array.dtype.names:
-                column_names.append(f"{name}{dtype_name}")
-        else:
-            column_names = [name]
+        if name is None:
+            name = "data"
         if input_array.ndim == 1:
-            df = pd.DataFrame(input_array[idx_row])
+            df = df.with_columns([
+                pl.Series(name=name, values=input_array[idx_row])
+                ])
         else:
-            df = pd.DataFrame(input_array[idx_row, idx_col])
-        df.columns = column_names
+            df = df.with_columns([
+                pl.Series(name=name, values=input_array[idx_row, idx_col])
+                ])
 
-    df = df.set_index([idx_row, idx_col])
+    # df = df.set_index([idx_row, idx_col])
+    df = df.with_columns([
+        pl.Series(name="row", values=idx_row),
+        pl.Series(name="col", values=idx_col)])
+    #df = df.with_columns([
+    #        pl.lit(idx_row).alias("row"),
+    #        pl.lit(idx_col).alias("col"),
+    #    ])
 
     return df
 
@@ -54,12 +72,13 @@ def coo_values_to_df(data, row, col, name):
     """Convert sparse coo values to pandas DataFrame.
     """
     if name is None:
-        df = pd.DataFrame(data=data,
-                          index=pd.MultiIndex.from_arrays([row, col]))
+        df = pl.DataFrame({"row": row,
+                           "col": col,
+                           "data": data})
     else:
-        df = pd.DataFrame(data=data,
-                          index=pd.MultiIndex.from_arrays([row, col]),
-                          columns=[name])
+        df = pl.DataFrame({"row": row,
+                           "col": col,
+                           "name": data})
 
     return df
 
