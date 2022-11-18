@@ -1,5 +1,6 @@
 import numba
 import numpy as np
+from numpy.lib import recfunctions as rfn
 
 
 def join_arrays(row1, col1, data1,
@@ -31,6 +32,8 @@ def _join_arrays(row1, col1, data1,
     #pylint: disable=too-many-arguments
     #pylint: disable=too-many-locals
 
+
+    """
     # join types
     if join_type == "left":
         idx_inner_left, idx_inner_right = get_idx(row1, col1, row2, col2, join_type="inner")
@@ -60,6 +63,11 @@ def _join_arrays(row1, col1, data1,
                                            len(row_new))
         return np.array(row_new, dtype=row1.dtype), np.array(col_new, dtype=col1.dtype), data_join
     raise ValueError("Unknown join_type (must be 'left', 'right', 'inner', 'outer')")
+    """
+    arr1 = rfn.merge_arrays((row1, col1, data1))
+    arr2 = rfn.merge_arrays((row2, col2, data2))
+    data_join = rfn.join_by(["f0", "f1"], arr1, arr2, jointype="leftouter", usemask=False)
+    return data_join["f0"], data_join["f1"], data_join
 
 
 def set_and_fill_new_array(data1, data2, name,
