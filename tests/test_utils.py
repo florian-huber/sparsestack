@@ -23,6 +23,7 @@ def test_join_arrays(row2, col2):
     assert np.allclose([x[0] for x in c], [0, 1, 2, 3, 4])
     assert np.allclose([x[1] for x in c], [0, 0, 10, 0, 20])
 
+
 @pytest.mark.parametrize("join_type, expected_data, expected_row", [
     ["left", np.array([[0, 0], [1, 0], [2, 2], [4, 0], [5, 5]]), np.array([0, 1, 2, 4, 5])],
     ["right", np.array([[2, 2],[0, 3], [5, 5], [0, 6], [0, 7],]), np.array([2, 3, 5, 6, 7])],
