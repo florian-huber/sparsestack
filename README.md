@@ -68,8 +68,7 @@ sparsestack[3, :, 0]  # => tuple with row, col, scores_1 for all entries in row=
 sparsestack[3, :, "scores_1"]  # => same as the one before
 ```
 2) `.to_array()`
-Creates and returns a dense numpy array of size `.shape`. Can also be used to create a dense numpy array of only a single layer when used like `.to_array(name="layerX")`.
-
+Creates and returns a dense numpy array of size `.shape`. Can also be used to create a dense numpy array of only a single layer when used like `.to_array(name="layerX")`.  
 **Carefull:** Obviously by converting to a dense array, the sparse nature will be lost and all empty positions in the stack will be filled with zeros.
 3) `.to_coo(name="layerX")`
 Returns a scipy sparse COO-matrix of the specified layer.
