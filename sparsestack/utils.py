@@ -76,8 +76,7 @@ def set_and_fill_new_array(data1, data2, name,
     """Create new structured numpy array and fill with data1 and data2.
     """
     #pylint: disable=too-many-arguments
-    #pylint: disable=too-many-locals
-    
+
     new_dtype = [(dname, d[0]) for dname, d in data1.dtype.fields.items()]
     if data2.dtype.names is None:
         new_dtype += [(name, data2.dtype)]
@@ -195,6 +194,7 @@ def get_idx_outer(left_row, left_col, right_row, right_col,
 
 def get_idx(left_row, left_col, right_row, right_col, idx1, idx2,
             join_type="left"):
+    #pylint: disable=too-many-arguments
     if join_type == "inner":
         return get_idx_inner(left_row, left_col, right_row, right_col,
                              idx1, idx2)
