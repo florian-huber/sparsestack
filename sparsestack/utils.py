@@ -92,27 +92,69 @@ def set_and_fill_new_array(data1, data2, name,
 
 
 @numba.jit(nopython=True)
-def get_idx_inner_brute_force(left_row, left_col, right_row, right_col):
-    #Get indexes for entries for a inner join.
-    idx_inner_left = []
-    idx_inner_right = []
-    for i, right_row_id in enumerate(right_row):
-        if right_row_id in left_row:
-            idx = np.where((left_row == right_row_id)
-                            & (left_col == right_col[i]))[0]
-            if len(idx) > 0:
-                idx_inner_left.append(idx[0])
-                idx_inner_right.append(i)
-    return idx_inner_left, idx_inner_right
+def get_idx_inner(left_row, left_col, right_row, right_col,
+                  idx1, idx2):
+    # inner join
+    idx_left = []
+    idx_left_new = []
+    idx_right = []
+    idx_right_new = []
+    row_new = []
+    col_new = []
+    low = 0
+    counter = 0
+    for i in idx1:
+        for j in idx2[low:]:
+            if (left_row[i] == right_row[j]) and (left_col[i] == right_col[j]):
+                idx_left.append(i)
+                idx_left_new.append(counter)
+                idx_right.append(j)
+                idx_right_new.append(counter)
+                row_new.append(left_row[i])
+                col_new.append(left_col[i])
+                counter += 1
+            if left_row[i] > right_row[j]:
+                low = j
+            if left_row[i] < right_row[j]:
+                break
+    return idx_left, idx_left_new, idx_right, idx_right_new, row_new, col_new
+
+
+@numba.jit(nopython=True)
+def get_idx_outer(left_row, left_col, right_row, right_col,
+                  idx1, idx2):
+    # inner join
+    idx_left = []
+    idx_left_new = []
+    idx_right = []
+    idx_right_new = []
+    row_new = []
+    col_new = []
+    low = 0
+    counter = 0
+    for i in idx1:
+        for j in idx2[low:]:
+            if (left_row[i] == right_row[j]) and (left_col[i] == right_col[j]):
+                idx_left.append(i)
+                idx_left_new.append(counter)
+                idx_right.append(j)
+                idx_right_new.append(counter)
+                row_new.append(left_row[i])
+                col_new.append(left_col[i])
+                counter += 1
+            if left_row[i] > right_row[j]:
+                low = j
+            if left_row[i] < right_row[j]:
+                break
+    return idx_left, idx_left_new, idx_right, idx_right_new, row_new, col_new
 
 
 @numba.jit(nopython=True)
 def get_idx(left_row, left_col, right_row, right_col,
             join_type="left"):
-    list1 = list(zip(left_row, left_col))
-    list2 = list(zip(right_row, right_col))
     if join_type == "left":
-        uniques = set(list1)
+        return get_idx_outer(left_row, left_col, right_row, right_col,
+                             idx1, idx2)
     elif join_type == "right":
         uniques = set(list2)
     elif join_type == "inner":
