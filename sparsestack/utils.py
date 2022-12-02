@@ -76,6 +76,8 @@ def set_and_fill_new_array(data1, data2, name,
     """Create new structured numpy array and fill with data1 and data2.
     """
     #pylint: disable=too-many-arguments
+    #pylint: disable=too-many-locals
+    
     new_dtype = [(dname, d[0]) for dname, d in data1.dtype.fields.items()]
     if data2.dtype.names is None:
         new_dtype += [(name, data2.dtype)]
@@ -102,7 +104,14 @@ def set_and_fill_new_array(data1, data2, name,
 @numba.jit(nopython=True)
 def get_idx_inner(left_row, left_col, right_row, right_col,
                   idx1, idx2):
-    # inner join
+    """Get current and new indices for inner merge.
+
+    idx1, idx2
+        Numpy array of pre-sorted (np.lexsort) indices for left/right arrays.
+    """
+    #pylint: disable=too-many-arguments
+    #pylint: disable=too-many-locals
+
     idx_left = []
     idx_left_new = []
     idx_right = []
@@ -131,7 +140,14 @@ def get_idx_inner(left_row, left_col, right_row, right_col,
 @numba.jit(nopython=True)
 def get_idx_outer(left_row, left_col, right_row, right_col,
                   idx1, idx2):
-    # outer join
+    """Get current and new indices for outer merge.
+
+    idx1, idx2
+        Numpy array of pre-sorted (np.lexsort) indices for left/right arrays.
+    """
+    #pylint: disable=too-many-arguments
+    #pylint: disable=too-many-locals
+
     idx_left = []
     idx_left_new = []
     idx_right = []
@@ -185,5 +201,4 @@ def get_idx(left_row, left_col, right_row, right_col, idx1, idx2,
     if join_type == "outer":
         return get_idx_outer(left_row, left_col, right_row, right_col,
                              idx1, idx2)
-    else:
-        raise ValueError("Unknown join_type")
+    raise ValueError("Unknown join_type")
