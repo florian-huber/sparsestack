@@ -120,7 +120,7 @@ def get_idx_inner(left_row, left_col, right_row, right_col,
     low = 0
     counter = 0
     for i in idx1:
-        for j in idx2[low:]:
+        for count, j in enumerate(idx2[low:]):
             if (left_row[i] == right_row[j]) and (left_col[i] == right_col[j]):
                 idx_left.append(i)
                 idx_left_new.append(counter)
@@ -129,8 +129,9 @@ def get_idx_inner(left_row, left_col, right_row, right_col,
                 row_new.append(left_row[i])
                 col_new.append(left_col[i])
                 counter += 1
+                low = count
             if left_row[i] > right_row[j]:
-                low = j
+                low = count
             if left_row[i] < right_row[j]:
                 break
     return idx_left, idx_right, idx_left_new, idx_right_new, row_new, col_new
@@ -159,12 +160,12 @@ def get_idx_outer(left_row, left_col, right_row, right_col,
     counter = 0
     for i in idx1:
         current_match = False
-        for j in idx2[low:]:
+        for count, j in enumerate(idx2[low:]):
             if (left_row[i] == right_row[j]) and (left_col[i] == right_col[j]):
                 right_in_inner.append(j)
                 current_match = True
             if left_row[i] > right_row[j]:
-                low = j
+                low = count
             if left_row[i] < right_row[j]:
                 break
         if current_match:
