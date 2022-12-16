@@ -43,3 +43,23 @@ def test_join_arrays_join_types(join_type, expected_data, expected_row):
                                  join_type=join_type)
     assert np.allclose(np.array([[x[0], x[1]] for x in data]), expected_data)
     assert np.allclose(row, expected_row)
+
+
+@pytest.mark.parametrize("join_type", [
+    "left", "right", "inner", "outer"
+])
+def test_join_arrays_larger(join_type):
+    """Joining two identical arrays should always give the same result."""
+    row = np.array([ 0,  1,  2,  3,  4,  5,  6,  6, 15,  7,  7,  8,  7,  9,  7, 10,  7,
+                    11,  8,  8,  9,  8, 10,  8, 11,  9,  9, 10,  9, 11, 10, 10, 11, 11,
+                    12, 12, 13, 13, 14, 15, 16, 17, 18, 19])
+
+    col = np.array([ 0,  1,  2,  3,  4,  5,  6, 15,  6,  7,  8,  7,  9,  7, 10,  7, 11, 
+                    7,  8,  9,  8, 10,  8, 11,  8,  9, 10,  9, 11,  9, 10, 11, 10, 11,
+                    12, 13, 12, 13, 14, 15, 16, 17, 18, 19])
+    data1 = np.array(np.arange(0, len(col)), dtype=[("layer1", col.dtype)])
+    data2 = np.array(np.arange(0, len(col)), dtype=[("layer2", col.dtype)])
+
+    row_out, col_out, data_out = join_arrays(row, col, data1, row, col, data2, "test1",
+                                 join_type=join_type)
+    assert np.allclose(sorted(data_out["test1_layer2"]), sorted(np.array([x[0] for x in data2])))
