@@ -4,7 +4,8 @@
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/florian-huber/sparsestack/CI_build.yml?branch=main)
 [![fair-software.eu](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu)
 
-# sparsestack
+![sparsestack logo](https://github.com/florian-huber/sparsestack/blob/main/images/sparsestack_logo.png)
+
 Memory efficient stack of multiple 2D sparse arrays.
 
 ![sparsestack-overview-figure](/docs/sparsestack_overview_01.png)
