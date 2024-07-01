@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from scipy.sparse import coo_matrix
-from scipy.sparse.sputils import get_index_dtype
 from .utils import join_arrays
 
 
 _slicing_not_implemented_msg = "Wrong slicing, or option not yet implemented"
+
+
+def get_index_dtype(maxval):
+    if maxval <= np.iinfo(np.int32).max:
+        return np.int32
+    return np.int64
 
 
 class StackedSparseArray:
