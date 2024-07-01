@@ -14,7 +14,7 @@ Memory efficient stack of multiple 2D sparse arrays.
 
 ### Requirements
 
-Python 3.7 or higher
+Python 3.8 or higher
 
 ### Pip Install
 Simply install using pip: `pip install sparsestack`
