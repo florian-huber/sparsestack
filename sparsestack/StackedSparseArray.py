@@ -56,7 +56,7 @@ class StackedSparseArray:
     def __init__(self, n_row, n_col):
         self.__n_row = n_row
         self.__n_col = n_col
-        self.idx_dtype = get_index_dtype(maxval=max(n_row, n_col))
+        self.idx_dtype = get_index_dtype(maxval=n_row * n_col))
         self.row = np.array([], dtype=self.idx_dtype)
         self.col = np.array([], dtype=self.idx_dtype)
         self.data = None
