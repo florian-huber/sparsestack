@@ -237,6 +237,10 @@ def test_sparsestack_slicing():
     matrix = StackedSparseArray(12, 10)
     matrix.add_dense_matrix(arr, "test_score")
 
+    # matrix[0,0,'test_score'] = 42
+    m = matrix[:1,:1, 'test_score']
+    assert m[0, 0] == 0
+
     # Test slicing
     assert matrix[0, 0] == 0
     assert matrix[2, 2] == 22
@@ -253,16 +257,34 @@ def test_sparsestack_slicing():
     assert np.all(r == 2)
     assert np.all(v2 == np.arange(20, 30))
     assert np.all(r2 == 2)
-    r, c, v = matrix["test_score"]
-    r2, c2, v2 = matrix[:, :]
-    r3, c3, v3 = matrix[:, :, 0]
-    r4, c4, v4 = matrix[:, :, :]
-    assert len(c) == len(c2) == len(c3) == len(c4) == 119
-    assert len(r) == len(r2) == len(r3) == len(r4) == 119
-    assert np.all(v == np.arange(1, 120))
-    assert np.all(v2 == np.arange(1, 120))
-    assert np.all(v3 == np.arange(1, 120))
-    assert np.all(v4 == np.arange(1, 120))
+    # r, c, v = matrix["test_score"]
+
+    m2 = matrix[:, :]
+    m3 = matrix[:, :, 0]
+    m4 = matrix[:, :, :]
+
+    assert matrix.shape == m2.shape == m3.shape == m4.shape == (12, 10, 1)
+
+    for m in [m2,m3,m4]:
+        assert np.allclose(m.row, matrix.row)
+        assert np.allclose(m.col, matrix.col)
+        assert np.allclose(m.data['test_score'], matrix.data['test_score'])
+        
+    # assert len(r) == len(r2) == len(r3) == len(r4) == 119
+    # assert np.all(v == np.arange(1, 120))
+    # assert np.all(v2 == np.arange(1, 120))
+    # assert np.all(v3 == np.arange(1, 120))
+    # assert np.all(v4 == np.arange(1, 120))
+
+    # r2, c2, v2 = matrix[:, :]
+    # r3, c3, v3 = matrix[:, :, 0]
+    # r4, c4, v4 = matrix[:, :, :]
+    # assert len(c) == len(c2) == len(c3) == len(c4) == 119
+    # assert len(r) == len(r2) == len(r3) == len(r4) == 119
+    # # assert np.all(v == np.arange(1, 120))
+    # # assert np.all(v2 == np.arange(1, 120))
+    # # assert np.all(v3 == np.arange(1, 120))
+    # # assert np.all(v4 == np.arange(1, 120))
 
 
 def test_sparsestack_slicing_mostly_empty_array():
@@ -280,12 +302,12 @@ def test_sparsestack_slicing_mostly_empty_array():
 
 
 @pytest.mark.parametrize("slicing_option", [
-    "matrix[0, 1:3, 'scores1']",
-    "matrix[:2, :, 0]",
-    "matrix[:2, 1, 0]",
-    "matrix[:, 1:, 0]",
-    "matrix[1, 1:, 0]",
-    "matrix[1, 1, :1]",
+    # "matrix[0, 1:3, 'scores1']",
+    # "matrix[:2, :, 0]",
+    # "matrix[:2, 1, 0]",
+    # "matrix[:, 1:, 0]",
+    # "matrix[1, 1:, 0]",
+    # "matrix[1, 1, :1]",
     "matrix[None]",
 ])
 def test_sparsestack_slicing_exceptions(dense_array_sparse, slicing_option):

@@ -96,6 +96,11 @@ class StackedSparseArray:
             if len(r) == 0:
                 return np.array([0])
             return d
+        elif isinstance(row, slice) and isinstance(col, slice):
+            if None not in (row.start, row.stop, col.start, col.stop):
+                clone = StackedSparseArray(row.stop - row.start, col.stop - col.start)
+                clone.add_sparse_data(r, c, d, name=self.score_names[0])
+                return clone
         return r, c, d
 
     def _getitem_method(self, row, col, name):
@@ -115,17 +120,21 @@ class StackedSparseArray:
             return self.row[idx], self.col[idx], self._slicing_data(name, idx)
         # matrix[:, :, "score_1"]
         if isinstance(row, slice) and isinstance(col, slice):
-            self._is_implemented_slice(row)
-            self._is_implemented_slice(col)
-            return self.row, self.col, self._slicing_data(name)
+            # TODO: self.row, col are sorted, use that knowledge to avoid masking entire array, damnit.
+            rmask = np.ma.masked_inside(self.row, row.start, row.stop).mask
+            cmask = np.ma.masked_inside(self.col, col.start, col.stop).mask
+            mask = rmask & cmask
+            idx = np.where(mask)
+            return self.row[mask], self.col[mask], self._slicing_data(name=name, idx=idx)
         if (row is None and col is None) and isinstance(name, str):
             return self.row, self.col, self._slicing_data(name)
         raise IndexError(_slicing_not_implemented_msg)
 
     def _is_implemented_slice(self, input_slice):
+        pass
         # Currently slices like matrix[2:4, :] or not implemented
-        if not (input_slice.start is None and input_slice.stop is None and input_slice.step is None):
-            raise IndexError(_slicing_not_implemented_msg)
+        # if not (input_slice.start is None and input_slice.stop is None and input_slice.step is None):
+        #     raise IndexError(_slicing_not_implemented_msg)
 
     def _slicing_data(self, name, idx=None):
         if isinstance(name, slice) and len(self.score_names) == 1:
@@ -147,6 +156,8 @@ class StackedSparseArray:
                     raise IndexError(f"Index ({index}) out of range")
                 if index < 0:
                     index += shape
+            elif isinstance(index, slice):
+                index = slice(*index.indices(shape))
             elif not isinstance(index, slice):
                 index = self._asindices(index, shape)
             return index
